@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Freelance Marketplace</title>
     <style>
-        body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        body { font-family: sans-serif; max-width: 1000px; margin: 40px auto; padding: 20px; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
         h2 { text-align: center; margin-top: 0; }
         .box { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 12px; }
@@ -18,24 +18,38 @@
         #status, #formStatus { margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
         .feed-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; max-height: 700px; overflow-y: auto; }
         
-        /* UPDATED STYLES FOR CARD BADGES & NOTIFICATIONS */
-        .job-card { border: 1px solid #eef0f2; background: #fafbfc; padding: 18px; border-radius: 6px; position: relative; }
+        .job-card { border: 1px solid #eef0f2; background: #fafbfc; padding: 18px; border-radius: 6px; position: relative; cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
+        .job-card:hover { transform: translateY(-2px); border-color: #10a37f; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .job-card.selected { border: 2px solid #10a37f; background: #f4faf8; }
         .job-card-title { margin: 0 0 5px 0; color: #10a37f; font-size: 1.1rem; padding-right: 75px; }
         .category-badge { position: absolute; top: 15px; right: 15px; background: #e2f0ed; color: #10a37f; padding: 3px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
         .job-card-budget { font-weight: bold; color: #222; font-size: 0.9rem; margin-top: 8px; }
         
-        .bid-box-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #ddd; background: #f4f6f8; padding: 10px; border-radius: 4px; }
+        .bid-box-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #10a37f; background: #ffffff; padding: 15px; border-radius: 6px; border: 1px solid #10a37f; }
         .notification-banner { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 0.9rem; }
         .notification-item { font-weight: normal; font-size: 0.85rem; margin-top: 4px; border-bottom: 1px solid #f1e4be; padding-bottom: 4px; }
+        
+        /* SEARCH HUB STYLES */
+        .search-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .account-type-group { display: flex; gap: 15px; margin-bottom: 10px; justify-content: center; }
+        .account-type-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; }
     </style>
 </head>
 <body>
 
-    <!-- LEFT COLUMN: AUTHENTICATION & FORM SUBMISSION -->
+    <!-- LEFT COLUMN: AUTHENTICATION, FORMS & APPLICATION PANELS -->
     <div>
         <div id="authBox" class="box">
-            <h2 id="authTitle">Create Client Account</h2>
+            <h2 id="authTitle">Create Marketplace Account</h2>
             <form id="authForm">
+                <!-- NEW ACCOUNT PROFILE TYPE SWITCHER -->
+                <div class="form-group" id="accountTypeContainer">
+                    <label style="text-align: center; margin-bottom: 8px;">Select Your Role:</label>
+                    <div class="account-type-group">
+                        <label><input type="radio" name="accountType" value="client" checked> Post Jobs (Client)</label>
+                        <label><input type="radio" name="accountType" value="freelancer"> Apply for Jobs (Freelancer)</label>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" required>
@@ -51,9 +65,9 @@
         </div>
 
         <div id="userDashboard" class="box hidden">
-            <p>Logged in as: <span id="userEmail" style="font-weight: bold; color: #10a37f;"></span></p>
+            <p>Welcome back, <span id="userEmail" style="font-weight: bold; color: #10a37f;"></span></p>
+            <p style="font-size: 0.85rem; color: #666; margin-top: -10px;">Account Role: <span id="userRoleBadge" style="font-weight: bold; text-transform: uppercase;"></span></p>
             
-            <!-- NOTIFICATION FEED BANNER -->
             <div id="notificationFeed" class="notification-banner hidden">
                 🔔 Recent Applications on Your Posts:
                 <div id="notificationList"></div>
@@ -62,18 +76,14 @@
             <button id="logoutBtn" class="secondary">Log Out</button>
         </div>    
 
-        <div id="jobBox" class="box">
+        <!-- SECURE JOB POSTING MODULE -->
+        <div id="jobBox" class="box hidden">
             <h2>Post a Freelance Job</h2>
-            <div id="lockMessage" style="color: #c00; font-weight: bold; text-align: center;">
-                ⚠️ You must create an account or log in above before you can post a job. 
-            </div>       
-            
-            <form id="jobForm" class="hidden" style="opacity: 0.5; pointer-events: none;">
+            <form id="jobForm">
                 <div class="form-group">
                     <label for="title">Job Title</label>
                     <input type="text" id="title" required>
                 </div>
-                <!-- DYNAMIC CATEGORY DROPDOWN BADGE SELECTOR -->
                 <div class="form-group">
                     <label for="category">Job Category</label>
                     <select id="category">
@@ -95,98 +105,167 @@
             </form>
             <div id="formStatus"></div>       
         </div>
+
+        <!-- CONDITIONAL APPLICATION PANELS: HIDDEN UNTIL CONDITIONS PASS -->
+        <div id="applyBox" class="box hidden">
+            <h2>Apply for Position</h2>
+            <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px;">You are bidding on: <strong id="applyJobTitle" style="color: #10a37f;"></strong></p>
+            
+            <div class="form-group">
+                <label for="bidText">Your Proposal Offer</label>
+                <textarea id="bidText" placeholder="Introduce yourself and outline your experience..." rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="bidAmount">Bid Quote ($)</label>
+                <input type="number" id="bidAmount" placeholder="Amount ($)" required>
+            </div>
+            <button type="button" id="submitBidBtn">Submit Official Pitch</button>
+            <div id="bidStatus" style="font-size: 0.85rem; margin-top: 8px; font-weight: bold; text-align: center;"></div>
+        </div>
+
+        <div id="lockMessage" class="box" style="text-align: center; font-weight: bold; color: #c00;">
+            ⚠️ Log in to unlock your dashboard options. Click any active job on the right to view its details.
+        </div>
     </div>
 
-    <!-- RIGHT COLUMN: ACTIVE JOB BOARD FEED -->
+    <!-- RIGHT COLUMN: CONTROL HUB & FILTER FEED -->
     <div id="feedBox" class="box">
         <h2>Active Job Board</h2>
+        
+        <!-- SEARCH & FILTER SYSTEM CONTROLS -->
+        <div class="search-controls">
+            <input type="text" id="searchBar" placeholder="Search title or keywords...">
+            <select id="filterCategory">
+                <option value="ALL">All Categories</option>
+                <option value="Sports">Sports Coaching</option>
+                <option value="Gaming">Gaming / Esport</option>
+                <option value="Chess">Chess Lessons</option>
+                <option value="General">General Freelance</option>
+            </select>
+        </div>
+
         <div id="feed" class="feed-container">
             <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
         </div>
     </div>
 
-    <!-- FIREWALL-PROOF APPLICATION SCRIPT -->
     <script>
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
         let currentUserSessionToken = null;
         let loggedInUserEmail = null;
+        let loggedInUserRole = null; 
+        let cachedJobsList = [];      
+        let selectedJobId = null;     
 
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
         const authTitle = document.getElementById('authTitle');
         const authBtn = document.getElementById('authBtn');
         const toggleAuthBtn = document.getElementById('toggleAuthBtn');
+        const accountTypeContainer = document.getElementById('accountTypeContainer');
         const authStatus = document.getElementById('status');
         const authBox = document.getElementById('authBox');
         const userDashboard = document.getElementById('userDashboard');
         const userEmailSpan = document.getElementById('userEmail');
+        const userRoleBadge = document.getElementById('userRoleBadge');
         const logoutBtn = document.getElementById('logoutBtn');    
         const lockMessage = document.getElementById('lockMessage');
+        const jobBox = document.getElementById('jobBox');
         const jobForm = document.getElementById('jobForm');
         const formStatus = document.getElementById('formStatus');
+        const applyBox = document.getElementById('applyBox');
+        const applyJobTitle = document.getElementById('applyJobTitle');
+        const submitBidBtn = document.getElementById('submitBidBtn');
+        const bidStatus = document.getElementById('bidStatus');
         const feedContainer = document.getElementById('feed');
         const notificationFeed = document.getElementById('notificationFeed');
         const notificationList = document.getElementById('notificationList');
+        const searchBar = document.getElementById('searchBar');
+        const filterCategory = document.getElementById('filterCategory');
 
-        // 1. FETCH FEED & GENERIC APPLICATION RENDERER
+        // 1. FILTER HOOKS & BOARD RE-RENDER ENGINE
         async function fetchAndRenderFeed() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs?select=*&order=created_at.desc`, {
                     method: 'GET',
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                 });
-
                 if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-                const jobs = await response.json();
-
-                if (!jobs || jobs.length === 0) {
-                    feedContainer.innerHTML = `<p style="color: #999; text-align: center; font-style: italic;">No listings on the board yet.</p>`;
-                    return;
-                }
-
-                feedContainer.innerHTML = jobs.map(job => `
-                    <div class="job-card">
-                        <span class="category-badge">${escapeHTML(job.category || 'General')}</span>
-                        <h3 class="job-card-title">${escapeHTML(job.title)}</h3>
-                        <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.4;">${escapeHTML(job.description)}</p>
-                        <div class="job-card-budget">Est. Budget: $${job.budget}</div>
-                        
-                        <!-- FREELANCER PROPOSAL SUBMISSION FIELD -->
-                        <div class="bid-box-wrapper">
-                            <h4 style="margin: 0 0 8px 0; font-size: 0.85rem; color: #333;">Apply for this position:</h4>
-                            <div class="form-group">
-                                <input type="email" id="bidEmail-${job.id}" placeholder="Your Email Address" style="font-size: 0.8rem; padding: 4px; margin-bottom: 5px;" required>
-                                <textarea id="bidText-${job.id}" placeholder="Introduce yourself and outline your coaching offer..." rows="2" style="font-size: 0.8rem; padding: 4px; margin-bottom: 5px;" required></textarea>
-                                <input type="number" id="bidAmount-${job.id}" placeholder="Your Bid Amount ($)" style="font-size: 0.8rem; padding: 4px;" required>
-                            </div>
-                            <button class="bid-btn" onclick="submitBidDirectly('${job.id}')">Submit Offer Pitch</button>
-                            <div id="bidStatus-${job.id}" style="font-size: 0.75rem; margin-top: 4px; font-weight: bold;"></div>
-                        </div>
-                    </div>
-                `).join('');
-
+                cachedJobsList = await response.json();
+                applyFiltersAndRender();
             } catch (err) {
                 feedContainer.innerHTML = `<p style="color: red; text-align: center;">Feed Pipe Sync Error: ${err.message}</p>`;
             }
         }
 
-        // 2. SUBMIT FREELANCER BID (Bypass RLS networks directly via Fetch parameters)
-        window.submitBidDirectly = async function(jobId) {
-            const bidEmail = document.getElementById(`bidEmail-${jobId}`).value;
-            const bidText = document.getElementById(`bidText-${jobId}`).value;
-            const bidAmount = parseInt(document.getElementById(`bidAmount-${jobId}`).value);
-            const statusTarget = document.getElementById(`bidStatus-${jobId}`);
+        function applyFiltersAndRender() {
+            const searchKeyword = searchBar.value.toLowerCase();
+            const categorySelection = filterCategory.value;
 
-            if(!bidEmail || !bidText || !bidAmount) {
-                statusTarget.style.color = "red";
-                statusTarget.textContent = "Please fill out all bidding fields.";
+            const filteredJobs = cachedJobsList.filter(job => {
+                const matchesSearch = job.title.toLowerCase().includes(searchKeyword) || job.description.toLowerCase().includes(searchKeyword);
+                const matchesCategory = (categorySelection === 'ALL') || (job.category === categorySelection);
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredJobs.length === 0) {
+                feedContainer.innerHTML = `<p style="color: #999; text-align: center; font-style: italic;">No matching job listings found.</p>`;
                 return;
             }
 
-            statusTarget.style.color = "black";
-            statusTarget.textContent = "Transmitting pitch...";
+            feedContainer.innerHTML = filteredJobs.map(job => `
+                <div class="job-card ${selectedJobId === job.id ? 'selected' : ''}" onclick="handleJobCardSelection('${job.id}', '${escapeHTML(job.title)}')">
+                    <span class="category-badge">${escapeHTML(job.category || 'General')}</span>
+                    <h3 class="job-card-title">${escapeHTML(job.title)}</h3>
+                    <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.4;">${escapeHTML(job.description)}</p>
+                    <div class="job-card-budget">Est. Budget: $${job.budget}</div>
+                </div>
+            `).join('');
+        }
+
+        searchBar.addEventListener('input', applyFiltersAndRender);
+        filterCategory.addEventListener('change', applyFiltersAndRender);
+
+        // 2. DYNAMIC SELECTION HOOK
+        window.handleJobCardSelection = function(jobId, jobTitle) {
+            selectedJobId = jobId;
+            
+            // Re-render styles to highlight selected card
+            const cards = document.querySelectorAll('.job-card');
+            applyFiltersAndRender();
+
+            // Check access requirements to reveal the application box
+            if (currentUserSessionToken && loggedInUserRole === 'freelancer') {
+                applyBox.classList.remove('hidden');
+                lockMessage.classList.add('hidden');
+                applyJobTitle.textContent = jobTitle;
+                bidStatus.textContent = "";
+            } else if (currentUserSessionToken && loggedInUserRole === 'client') {
+                applyBox.classList.add('hidden');
+                lockMessage.innerHTML = `ℹ️ You are logged in as a Client. Only Freelancers can apply for positions.`;
+                lockMessage.classList.remove('hidden');
+            } else {
+                applyBox.classList.add('hidden');
+                lockMessage.innerHTML = `⚠️ <strong>Access Denied:</strong> Log in as a Freelancer to apply for <em>"${jobTitle}"</em>.`;
+                lockMessage.classList.remove('hidden');
+            }
+        };
+
+        // 3. SUBMIT BID PROPOSAL
+        submitBidBtn.addEventListener('click', async () => {
+            const bidText = document.getElementById('bidText').value;
+            const bidAmount = parseInt(document.getElementById('bidAmount').value);
+
+            if(!bidText || !bidAmount || !selectedJobId) {
+                bidStatus.style.color = "red";
+                bidStatus.textContent = "Please fill out all pricing fields.";
+                return;
+            }
+
+            bidStatus.style.color = "black";
+            bidStatus.textContent = "Transmitting offer...";
 
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/bids`, {
@@ -197,52 +276,41 @@
                         'Content-Type': 'application/json',
                         'Prefer': 'return=minimal'
                     },
-                    body: JSON.stringify({ job_id: jobId, freelancer_email: bidEmail, proposal_text: bidText, bid_amount: bidAmount })
+                    body: JSON.stringify({ job_id: selectedJobId, freelancer_email: loggedInUserEmail, proposal_text: bidText, bid_amount: bidAmount })
                 });
 
-                if (!response.ok) throw new Error(`Write rejected code ${response.status}`);
+                if (!response.ok) throw new Error(`Server rejection code ${response.status}`);
 
-                statusTarget.style.color = "green";
-                statusTarget.textContent = "Success! Your application has been sent to the poster.";
-                
-                document.getElementById(`bidEmail-${jobId}`).value = '';
-                document.getElementById(`bidText-${jobId}`).value = '';
-                document.getElementById(`bidAmount-${jobId}`).value = '';
-
-                // If the user currently looking at the screen posted this job, instantly refresh notifications
-                if(currentUserSessionToken) { checkForClientNotifications(); }
-
+                bidStatus.style.color = "green";
+                bidStatus.textContent = "Success! Application submitted.";
+                document.getElementById('bidText').value = '';
+                document.getElementById('bidAmount').value = '';
             } catch (err) {
-                statusTarget.style.color = "red";
-                statusTarget.textContent = `Bidding error: ${err.message}`;
+                bidStatus.style.color = "red";
+                bidStatus.textContent = `Bidding error: ${err.message}`;
             }
-        };
+        });
 
-        // 3. CHECK CLIENT NOTIFICATIONS (Polls applications linked to marketplace rows)
+        // 4. NOTIFICATION CHECKER FOR CLIENTS
         async function checkForClientNotifications() {
+            if (loggedInUserRole !== 'client') return;
             try {
-                // Fetch bids directly from the global log
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/bids?select=*,jobs(title)`, {
                     method: 'GET',
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                 });
-
                 if (!response.ok) return;
                 const bids = await response.json();
 
                 if (bids && bids.length > 0) {
                     notificationFeed.classList.remove('hidden');
-                    // Reverse to show newest applications first
                     notificationList.innerHTML = bids.slice(-4).reverse().map(bid => `
                         <div class="notification-item">
-                            <strong>${escapeHTML(bid.freelancer_email)}</strong> applied to <em>"${escapeHTML(bid.jobs?.title || 'Your Post')}"</em><br>
-                            Offer: $${bid.bid_amount} - "${escapeHTML(bid.proposal_text)}"
+                            <strong>${escapeHTML(bid.freelancer_email)}</strong> bid $${bid.bid_amount} on <em>"${escapeHTML(bid.jobs?.title || 'Your Post')}"</em>
                         </div>
                     `).join('');
                 }
-            } catch (e) {
-                console.warn("Notification monitor poll warning.", e);
-            }
+            } catch (e) { console.warn(e); }
         }
 
         // Sanitization utility
@@ -251,17 +319,20 @@
             return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
+        // 5. REGISTRATION SWITCH HOOKS
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
                 authMode = 'login';
-                authTitle.textContent = "Client Log In";
+                authTitle.textContent = "Account Log In";
                 authBtn.textContent = "Log In";
                 toggleAuthBtn.textContent = "Need an account? Sign Up";
+                accountTypeContainer.classList.add('hidden');
             } else {
                 authMode = 'signup';
-                authTitle.textContent = "Create Client Account";
+                authTitle.textContent = "Create Marketplace Account";
                 authBtn.textContent = "Sign Up";
                 toggleAuthBtn.textContent = "Already have an account? Log In";
+                accountTypeContainer.classList.remove('hidden');
             }
         });
 
@@ -272,9 +343,12 @@
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const selectedType = document.querySelector('input[name="accountType"]:checked').value;
+            
             const targetEndpoint = authMode === 'signup' ? 'signup' : 'token?grant_type=password';
 
             try {
+                // Core user auth transmission
                 const response = await fetch(`${SUPABASE_URL}/auth/v1/${targetEndpoint}`, {
                     method: 'POST',
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
@@ -282,27 +356,47 @@
                 });
 
                 const payload = await response.json();
-                if (!response.ok) throw new Error(payload.error_description || payload.msg || payload.message || "Authentication error.");
+                if (!response.ok) throw new Error(payload.error_description || payload.msg || payload.message || "Authentication failed.");
 
                 if (authMode === 'signup') {
+                    // Profile metadata injection loop
+                    await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+                        method: 'POST',
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${payload.access_token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: payload.id, email: email, account_type: selectedType })
+                    });
                     authStatus.style.color = "green";
-                    authStatus.textContent = "Account verified successfully! Switch views to Log In now.";
+                    authStatus.textContent = "Account built! You can switch views to Log In now.";
                 } else {
                     currentUserSessionToken = payload.access_token;
                     loggedInUserEmail = payload.user.email;
-                    
+
+                    // Fetch user's profile metadata from Postgres to look up their account role type
+                    const roleResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${payload.user.id}&select=account_type`, {
+                        method: 'GET',
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
+                    });
+                    const profileData = await roleResponse.json();
+                    loggedInUserRole = profileData[0]?.account_type || 'freelancer';
+
+                    // Update UI elements based on the account role type
                     authBox.classList.add('hidden');
                     userDashboard.classList.remove('hidden');
                     userEmailSpan.textContent = loggedInUserEmail;
+                    userRoleBadge.textContent = loggedInUserRole;
+                    userRoleBadge.style.color = loggedInUserRole === 'client' ? '#10a37f' : '#007bff';
+                    
                     lockMessage.classList.add('hidden');
-                    jobForm.classList.remove('hidden');
-                    jobForm.style.opacity = "1";
-                    jobForm.style.pointerEvents = "auto";
+                    
+                    if (loggedInUserRole === 'client') {
+                        jobBox.classList.remove('hidden');
+                        checkForClientNotifications();
+                        setInterval(checkForClientNotifications, 15000);
+                    } else {
+                        lockMessage.innerHTML = "ℹ️ Freelancer Dashboard active. Click any listing on the right to read full parameters and apply.";
+                        lockMessage.classList.remove('hidden');
+                    }
                     authStatus.textContent = "";
-
-                    // Run the notification checker loop upon login
-                    checkForClientNotifications();
-                    setInterval(checkForClientNotifications, 15000); // Check for new bids every 15 seconds
                 }
             } catch (error) {
                 authStatus.style.color = "red";
@@ -313,14 +407,17 @@
         logoutBtn.addEventListener('click', () => {
             currentUserSessionToken = null;
             loggedInUserEmail = null;
+            loggedInUserRole = null;
+            selectedJobId = null;
             authBox.classList.remove('hidden');    
             userDashboard.classList.add('hidden');    
+            jobBox.classList.add('hidden');
+            applyBox.classList.add('hidden');
             notificationFeed.classList.add('hidden');
             authForm.reset();      
             lockMessage.classList.remove('hidden');   
-            jobForm.classList.add('hidden');   
-            jobForm.style.opacity = "0.5";  
-            jobForm.style.pointerEvents = "none"; 
+            lockMessage.innerHTML = `⚠️ Log in to unlock your dashboard options. Click any active job on the right to view its details.`;
+            applyFiltersAndRender();
         });        
 
         jobForm.addEventListener('submit', async (e) => {  
@@ -344,14 +441,11 @@
                     },
                     body: JSON.stringify({ title, description, budget, category })
                 });
-
                 if (!response.ok) throw new Error(`Write failed code ${response.status}`);
-
                 formStatus.style.color = "green"; 
-                formStatus.textContent = "Success! Listing is active with assigned badge.";         
+                formStatus.textContent = "Success! Listing is active.";         
                 jobForm.reset();
                 fetchAndRenderFeed();
-
             } catch (error) {
                 formStatus.style.color = "red"; 
                 formStatus.textContent = `Submission rejected: ${error.message}`; 
@@ -362,3 +456,4 @@
     </script>
 </body>
 </html>
+
