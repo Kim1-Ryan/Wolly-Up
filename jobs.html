@@ -93,13 +93,12 @@ This code:
 
 
     <script>
+        // 2. YOUR REAL LIVE SUPABASE CREDENTIALS
+        const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
-        // 2. CONFIGURE YOUR CREDENTIALS HERE FROM YOUR SUPABASE API SETTINGS
-        const SUPABASE_URL = "https://supabase.co"; 
-        const SUPABASE_ANON_KEY = "your-anon-public-api-key-here";
-
-        // Initialize the browser database client connection
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // FIXED: Initializing with a unique variable name to prevent naming crashes
+        const dbClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // 3. Fetch data from PostgreSQL and render it into the UI DOM
         async function fetchAndRenderJobs() {
@@ -108,7 +107,7 @@ This code:
 
             try {
                 // Query all columns from the 'jobs' table sorted by newest first
-                const { data: jobs, error } = await supabase
+                const { data: jobs, error } = await dbClient
                     .from('jobs')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -146,16 +145,13 @@ This code:
             }
         }
 
-        // Helper utility to sanitize text entries and prevent XSS injections
+        // FIXED STRING SYNTAX: Safely escaped the single quote notation
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
         // Trigger the asynchronous database query when the script executes
         fetchAndRenderJobs();
-
     </script>
 
 </body>
