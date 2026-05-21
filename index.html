@@ -200,10 +200,9 @@ The JavaScript handles the session states automatically.-->
 
     <script>
 
-        // CONFIGURATION: Clean URL without any trailing sub-folders
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const dbClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
@@ -223,7 +222,7 @@ The JavaScript handles the session states automatically.-->
         // Function to pull database rows and paint them to the screen
         async function fetchAndRenderFeed() {
             try {
-                const { data: jobs, error } = await supabase
+                const { data: jobs, error } = await dbClient
                     .from('jobs')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -248,7 +247,7 @@ The JavaScript handles the session states automatically.-->
             }
         }
         
-        // FIXED STRING SYNTAX: Safely escaped the single quote notation
+        // Helper function to stop XSS injection attacks from malicious postings
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
@@ -274,7 +273,7 @@ The JavaScript handles the session states automatically.-->
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             if (authMode === 'signup') {
-                const { data, error } = await supabase.auth.signUp({ email, password });
+                const { data, error } = await dbClient.auth.signUp({ email, password });
                 if (error) {
                     authStatus.style.color = "red";
                     authStatus.textContent = error.message;
@@ -283,7 +282,7 @@ The JavaScript handles the session states automatically.-->
                     authStatus.textContent = "Account verification email sent! Check your inbox.";
                 }
             } else {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
                 if (error) {
                     authStatus.style.color = "red";
                     authStatus.textContent = error.message;                
@@ -294,10 +293,10 @@ The JavaScript handles the session states automatically.-->
         });        
         
         logoutBtn.addEventListener('click', async () => {
-            await supabase.auth.signOut();
+            await dbClient.auth.signOut();
         });        
         
-        supabase.auth.onAuthStateChange((event, session) => {
+        dbClient.auth.onAuthStateChange((event, session) => {
             if (session && session.user) {               
                 authBox.classList.add('hidden');
                 userDashboard.classList.remove('hidden');
@@ -325,7 +324,7 @@ The JavaScript handles the session states automatically.-->
             const description = document.getElementById('description').value;   
             const budget = parseInt(document.getElementById('budget').value);
         
-            const { data, error } = await supabase
+            const { data, error } = await dbClient
                 .from('jobs')  
                 .insert([{ title, description, budget }]);    
             
