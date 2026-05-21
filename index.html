@@ -1,206 +1,117 @@
-<!--The Unified HTML & JavaScript Setup:
-This creates a simple system with an authentication panel (Signup/Login) 
-and a job posting form. 
-The JavaScript handles the session states automatically.-->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Freelance Marketplace</title>
-    
     <style>
-   
-        body { 
-            font-family: sans-serif; 
-            max-width: 500px; 
-            margin: 40px auto; 
-            padding: 20px; 
-            background: #f9f9f9; 
-        }
-
-        h2 {
-            text-align: center;
-        }
-
-        #lockMessage {
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .box { 
-            background: white; 
-            border: 1px solid #ddd; 
-            padding: 20px; 
-            border-radius: 8px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-        }
-
-        .form-group { 
-            margin-bottom: 12px; 
-        }
-
-        label { 
-            display: block; 
-            margin-bottom: 5px; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
-        }
-
-        input, textarea { 
-            width: 100%; 
-            padding: 8px; 
-            box-sizing: border-box; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-        }
-
-        button { 
-            background: #10a37f; 
-            color: white; 
-            border: none; 
-            padding: 10px; 
-            cursor: pointer; 
-            width: 100%; 
-            border-radius: 4px; 
-            font-weight: bold; 
-        }
-
-        button.secondary { 
-            background: #666; 
-            margin-top: 5px; 
-        }
-
-        .hidden { 
-            display: none; 
-        }
-
-        #status, #formStatus { 
-            margin-top: 10px; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
-        }
-
-         /* STYLES FOR JOB FEED PANEL */
-        .feed-container { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            margin-top: 15px;
-        }
-        .job-card { 
-            border: 1px solid #eef0f2; 
-            background: #fafbfc; 
-            padding: 15px; 
-            border-radius: 6px; 
-        }
-        .job-card-title { 
-            margin: 0 0 5px 0; 
-            color: #10a37f; 
-            font-size: 1.1rem; 
-        }
-        .job-card-budget { 
-            font-weight: bold; 
-            color: #222; 
-            font-size: 0.9rem; 
-            margin-top: 8px; 
-        }
-
+        body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        h2 { text-align: center; margin-top: 0; }
+        .box { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #10a37f; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; }
+        button.secondary { background: #666; margin-top: 5px; }
+        button.bid-btn { background: #007bff; margin-top: 8px; font-size: 0.85rem; padding: 6px; }
+        .hidden { display: none; }
+        #status, #formStatus { margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
+        .feed-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; max-height: 700px; overflow-y: auto; }
+        
+        /* UPDATED STYLES FOR CARD BADGES & NOTIFICATIONS */
+        .job-card { border: 1px solid #eef0f2; background: #fafbfc; padding: 18px; border-radius: 6px; position: relative; }
+        .job-card-title { margin: 0 0 5px 0; color: #10a37f; font-size: 1.1rem; padding-right: 75px; }
+        .category-badge { position: absolute; top: 15px; right: 15px; background: #e2f0ed; color: #10a37f; padding: 3px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .job-card-budget { font-weight: bold; color: #222; font-size: 0.9rem; margin-top: 8px; }
+        
+        .bid-box-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #ddd; background: #f4f6f8; padding: 10px; border-radius: 4px; }
+        .notification-banner { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; font-size: 0.9rem; }
+        .notification-item { font-weight: normal; font-size: 0.85rem; margin-top: 4px; border-bottom: 1px solid #f1e4be; padding-bottom: 4px; }
     </style>
-
 </head>
 <body>
 
-    <div id="authBox" class="box">
-        
-        <h2 id="authTitle">Create Client Account</h2>
-        
-        <form id="authForm">
+    <!-- LEFT COLUMN: AUTHENTICATION & FORM SUBMISSION -->
+    <div>
+        <div id="authBox" class="box">
+            <h2 id="authTitle">Create Client Account</h2>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required minlength="6">
+                </div>
+                <button type="submit" id="authBtn">Sign Up</button>
+                <button type="button" id="toggleAuthBtn" class="secondary">Already have an account? Log In</button>
+            </form>
+            <div id="status"></div>
+        </div>
+
+        <div id="userDashboard" class="box hidden">
+            <p>Logged in as: <span id="userEmail" style="font-weight: bold; color: #10a37f;"></span></p>
             
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" required>
+            <!-- NOTIFICATION FEED BANNER -->
+            <div id="notificationFeed" class="notification-banner hidden">
+                🔔 Recent Applications on Your Posts:
+                <div id="notificationList"></div>
             </div>
             
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required minlength="6">
-            </div>
+            <button id="logoutBtn" class="secondary">Log Out</button>
+        </div>    
+
+        <div id="jobBox" class="box">
+            <h2>Post a Freelance Job</h2>
+            <div id="lockMessage" style="color: #c00; font-weight: bold; text-align: center;">
+                ⚠️ You must create an account or log in above before you can post a job. 
+            </div>       
             
-            <button type="submit" id="authBtn">Sign Up</button>
-            <button type="button" id="toggleAuthBtn" class="secondary">Already have an account? Log In</button>
-        
-        </form>
-        
-        <div id="status"></div>
-    
+            <form id="jobForm" class="hidden" style="opacity: 0.5; pointer-events: none;">
+                <div class="form-group">
+                    <label for="title">Job Title</label>
+                    <input type="text" id="title" required>
+                </div>
+                <!-- DYNAMIC CATEGORY DROPDOWN BADGE SELECTOR -->
+                <div class="form-group">
+                    <label for="category">Job Category</label>
+                    <select id="category">
+                        <option value="Sports">Sports Coaching</option>
+                        <option value="Gaming">Gaming / Esport</option>
+                        <option value="Chess">Chess Lessons</option>
+                        <option value="General">General Freelance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="budget">Budget ($)</label>
+                    <input type="number" id="budget" required>
+                </div>
+                <button type="submit">Publish Job to Marketplace</button>
+            </form>
+            <div id="formStatus"></div>       
+        </div>
     </div>
 
-    <div id="userDashboard" class="box hidden">
-       
-        <p>Logged in as: 
-            <span id="userEmail" style="font-weight: bold; color: #10a37f;"></span>
-        </p>
-        
-        <button id="logoutBtn" class="secondary">Log Out</button>
-    
-    </div>    
-
-    <div id="jobBox" class="box">
-        
-        <h2>Post a Freelance Job</h2>
-        
-        <div id="lockMessage" style="color: #c00; font-weight: bold;">
-            ⚠️ You must create an account or log in above before you can post a job. 
-        </div>       
-        
-        <form id="jobForm" class="hidden" style="opacity: 0.5; pointer-events: none;">
-            
-            <div class="form-group">
-                <label for="title">Job Title</label>
-                <input type="text" id="title" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" rows="3" required></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="budget">Budget ($)</label>
-                <input type="number" id="budget" required>
-            </div>
-            
-            <button type="submit">Publish Job to Marketplace</button>
-        
-        </form>
-        
-        <div id="formStatus"></div>       
-    
-    </div>
-
-    <!-- NEW JOB BOARD DISPLAY BOX -->
+    <!-- RIGHT COLUMN: ACTIVE JOB BOARD FEED -->
     <div id="feedBox" class="box">
-        
         <h2>Active Job Board</h2>
-        
         <div id="feed" class="feed-container">
             <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
         </div>
-    
     </div>
 
-    <!-- NO EXTERNAL CDN SCRIPTS OR LIBRARY CONNECTIONS AT ALL -->
-
+    <!-- FIREWALL-PROOF APPLICATION SCRIPT -->
     <script>
-        // LIVE DATABASE CREDENTIAL ENVELOPE CONFIGURATION
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
-        // Local variable store to maintain the active user account token cache
         let currentUserSessionToken = null;
+        let loggedInUserEmail = null;
 
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
@@ -216,20 +127,18 @@ The JavaScript handles the session states automatically.-->
         const jobForm = document.getElementById('jobForm');
         const formStatus = document.getElementById('formStatus');
         const feedContainer = document.getElementById('feed');
+        const notificationFeed = document.getElementById('notificationFeed');
+        const notificationList = document.getElementById('notificationList');
 
-        // 1. FIREWALL-PROOF FEED FETCH (Uses plain browser network pipes)
+        // 1. FETCH FEED & GENERIC APPLICATION RENDERER
         async function fetchAndRenderFeed() {
             try {
-                // Connect to the REST endpoint directly via pure browser Fetch
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs?select=*&order=created_at.desc`, {
                     method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                    }
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                 });
 
-                if (!response.ok) throw new Error(`HTTP network error ${response.status}`);
+                if (!response.ok) throw new Error(`HTTP error ${response.status}`);
                 const jobs = await response.json();
 
                 if (!jobs || jobs.length === 0) {
@@ -239,9 +148,22 @@ The JavaScript handles the session states automatically.-->
 
                 feedContainer.innerHTML = jobs.map(job => `
                     <div class="job-card">
+                        <span class="category-badge">${escapeHTML(job.category || 'General')}</span>
                         <h3 class="job-card-title">${escapeHTML(job.title)}</h3>
                         <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.4;">${escapeHTML(job.description)}</p>
                         <div class="job-card-budget">Est. Budget: $${job.budget}</div>
+                        
+                        <!-- FREELANCER PROPOSAL SUBMISSION FIELD -->
+                        <div class="bid-box-wrapper">
+                            <h4 style="margin: 0 0 8px 0; font-size: 0.85rem; color: #333;">Apply for this position:</h4>
+                            <div class="form-group">
+                                <input type="email" id="bidEmail-${job.id}" placeholder="Your Email Address" style="font-size: 0.8rem; padding: 4px; margin-bottom: 5px;" required>
+                                <textarea id="bidText-${job.id}" placeholder="Introduce yourself and outline your coaching offer..." rows="2" style="font-size: 0.8rem; padding: 4px; margin-bottom: 5px;" required></textarea>
+                                <input type="number" id="bidAmount-${job.id}" placeholder="Your Bid Amount ($)" style="font-size: 0.8rem; padding: 4px;" required>
+                            </div>
+                            <button class="bid-btn" onclick="submitBidDirectly('${job.id}')">Submit Offer Pitch</button>
+                            <div id="bidStatus-${job.id}" style="font-size: 0.75rem; margin-top: 4px; font-weight: bold;"></div>
+                        </div>
                     </div>
                 `).join('');
 
@@ -250,13 +172,85 @@ The JavaScript handles the session states automatically.-->
             }
         }
 
-        // Sanitization engine to keep data displays safe from XSS attacks
+        // 2. SUBMIT FREELANCER BID (Bypass RLS networks directly via Fetch parameters)
+        window.submitBidDirectly = async function(jobId) {
+            const bidEmail = document.getElementById(`bidEmail-${jobId}`).value;
+            const bidText = document.getElementById(`bidText-${jobId}`).value;
+            const bidAmount = parseInt(document.getElementById(`bidAmount-${jobId}`).value);
+            const statusTarget = document.getElementById(`bidStatus-${jobId}`);
+
+            if(!bidEmail || !bidText || !bidAmount) {
+                statusTarget.style.color = "red";
+                statusTarget.textContent = "Please fill out all bidding fields.";
+                return;
+            }
+
+            statusTarget.style.color = "black";
+            statusTarget.textContent = "Transmitting pitch...";
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bids`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ job_id: jobId, freelancer_email: bidEmail, proposal_text: bidText, bid_amount: bidAmount })
+                });
+
+                if (!response.ok) throw new Error(`Write rejected code ${response.status}`);
+
+                statusTarget.style.color = "green";
+                statusTarget.textContent = "Success! Your application has been sent to the poster.";
+                
+                document.getElementById(`bidEmail-${jobId}`).value = '';
+                document.getElementById(`bidText-${jobId}`).value = '';
+                document.getElementById(`bidAmount-${jobId}`).value = '';
+
+                // If the user currently looking at the screen posted this job, instantly refresh notifications
+                if(currentUserSessionToken) { checkForClientNotifications(); }
+
+            } catch (err) {
+                statusTarget.style.color = "red";
+                statusTarget.textContent = `Bidding error: ${err.message}`;
+            }
+        };
+
+        // 3. CHECK CLIENT NOTIFICATIONS (Polls applications linked to marketplace rows)
+        async function checkForClientNotifications() {
+            try {
+                // Fetch bids directly from the global log
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bids?select=*,jobs(title)`, {
+                    method: 'GET',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+                });
+
+                if (!response.ok) return;
+                const bids = await response.json();
+
+                if (bids && bids.length > 0) {
+                    notificationFeed.classList.remove('hidden');
+                    // Reverse to show newest applications first
+                    notificationList.innerHTML = bids.slice(-4).reverse().map(bid => `
+                        <div class="notification-item">
+                            <strong>${escapeHTML(bid.freelancer_email)}</strong> applied to <em>"${escapeHTML(bid.jobs?.title || 'Your Post')}"</em><br>
+                            Offer: $${bid.bid_amount} - "${escapeHTML(bid.proposal_text)}"
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.warn("Notification monitor poll warning.", e);
+            }
+        }
+
+        // Sanitization utility
         function escapeHTML(str) {
             if (!str) return '';
             return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
-        // Switch panel visibility states between account registration and session login views
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
                 authMode = 'login';
@@ -271,11 +265,10 @@ The JavaScript handles the session states automatically.-->
             }
         });
 
-        // 2. FIREWALL-PROOF ACCOUNT VERIFICATION MANAGER (FULLY UPDATED)
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authStatus.style.color = "black";
-            authStatus.textContent = "Processing network security tokens...";
+            authStatus.textContent = "Processing session profiles...";
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -284,45 +277,45 @@ The JavaScript handles the session states automatically.-->
             try {
                 const response = await fetch(`${SUPABASE_URL}/auth/v1/${targetEndpoint}`, {
                     method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    // HERE IS WHERE THE FIXED PAYLOAD CODE LIVES:
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
 
                 const payload = await response.json();
-                if (!response.ok) throw new Error(payload.error_description || payload.msg || payload.message || "Authentication rejected.");
+                if (!response.ok) throw new Error(payload.error_description || payload.msg || payload.message || "Authentication error.");
 
                 if (authMode === 'signup') {
                     authStatus.style.color = "green";
-                    authStatus.textContent = "Account verified successfully! You can switch views to Log In now.";
+                    authStatus.textContent = "Account verified successfully! Switch views to Log In now.";
                 } else {
-                    // Cache the verified user session token safely inside memory context
                     currentUserSessionToken = payload.access_token;
+                    loggedInUserEmail = payload.user.email;
                     
-                    // Trigger UI state mutations to reveal the form layer
                     authBox.classList.add('hidden');
                     userDashboard.classList.remove('hidden');
-                    userEmailSpan.textContent = payload.user.email;
+                    userEmailSpan.textContent = loggedInUserEmail;
                     lockMessage.classList.add('hidden');
                     jobForm.classList.remove('hidden');
                     jobForm.style.opacity = "1";
                     jobForm.style.pointerEvents = "auto";
                     authStatus.textContent = "";
+
+                    // Run the notification checker loop upon login
+                    checkForClientNotifications();
+                    setInterval(checkForClientNotifications, 15000); // Check for new bids every 15 seconds
                 }
             } catch (error) {
                 authStatus.style.color = "red";
                 authStatus.textContent = error.message;
             }
-        });  
+        });        
 
-        // Reset memory references and hide interface modules on logout click events
         logoutBtn.addEventListener('click', () => {
             currentUserSessionToken = null;
+            loggedInUserEmail = null;
             authBox.classList.remove('hidden');    
             userDashboard.classList.add('hidden');    
+            notificationFeed.classList.add('hidden');
             authForm.reset();      
             lockMessage.classList.remove('hidden');   
             jobForm.classList.add('hidden');   
@@ -330,18 +323,17 @@ The JavaScript handles the session states automatically.-->
             jobForm.style.pointerEvents = "none"; 
         });        
 
-        // 3. FIREWALL-PROOF DATA SUBMISSION HANDLER
         jobForm.addEventListener('submit', async (e) => {  
             e.preventDefault();  
             formStatus.style.color = "black";            
-            formStatus.textContent = "Writing direct row record to PostgreSQL...";  
+            formStatus.textContent = "Publishing row data...";  
             
             const title = document.getElementById('title').value;   
             const description = document.getElementById('description').value;   
             const budget = parseInt(document.getElementById('budget').value);
+            const category = document.getElementById('category').value;
 
             try {
-                // Post data past your Row Level Security (RLS) rules by attaching the user session token
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
                     method: 'POST',
                     headers: {
@@ -350,19 +342,14 @@ The JavaScript handles the session states automatically.-->
                         'Content-Type': 'application/json',
                         'Prefer': 'return=minimal'
                     },
-                    body: JSON.stringify({ title, description, budget })
+                    body: JSON.stringify({ title, description, budget, category })
                 });
 
-                if (!response.ok) {
-                    const errPayload = await response.json().catch(() => ({}));
-                    throw new Error(errPayload.message || `Database write error code ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`Write failed code ${response.status}`);
 
                 formStatus.style.color = "green"; 
-                formStatus.textContent = "Success! Listing is active on the live board.";         
+                formStatus.textContent = "Success! Listing is active with assigned badge.";         
                 jobForm.reset();
-                
-                // Trigger auto-reload update instantly without full page reloads
                 fetchAndRenderFeed();
 
             } catch (error) {
@@ -371,9 +358,7 @@ The JavaScript handles the session states automatically.-->
             }
         });
 
-        // Run feed builder instantly when page loads to gather existing rows
         fetchAndRenderFeed();
     </script>
-    
 </body>
 </html>
