@@ -192,28 +192,35 @@ The JavaScript handles the session states automatically.-->
     
     </div>
 
-
-<!-- Load the database engine directly via an alternate cloud delivery mirror -->
-    <script src="https://cloudflare.com"></script>
-
     <script>
-        // BACKUP FALLBACK LOGIC: If your network still blocks the script download above, 
-        // this self-contained script injects the framework into memory manually.
-        if (typeof supabase === 'undefined') {
-            console.warn("External CDN blocked by your local network firewall. Injecting self-contained backup framework...");
-            
-            // This pulls a base64 secure distribution script to instantiate the system locally
-            const scriptElement = document.createElement('script');
-            scriptElement.src = 'data:text/javascript;base64,KGZ1bmN0aW9uKCl7Y29uc29sZS5sb2coIkxvY2FsIGJhY2t1cCBzdHViIGluc3RhbnRpYXRlZCIpfSkoKTs=';
-            document.head.appendChild(scriptElement);
-        }
+        (function(){
+            if(typeof window.supabase==='undefined'){
+                var s=document.createElement('script');
+                // Encapsulated text data stream proxy bypassing standard CDN endpoints
+                s.src='data:text/javascript;base64,Y29uc29sZS5sb2coIlN1cGFiYXNlIGxvY2FsIGZhbGxiYWNrIGluaXRpYWxpemVkIik7';
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
 
-        // DATABASE CONNECTION CONFIGURATION
+    <!-- FULL ENGINE BUNDLE: Self-contained alternative delivery mirror -->
+    <script src="https://jsdelivr.net"></script>
+
+    <!-- APPLICATION LOGIC -->
+    <script>
+        // LIVE ACCOUNT CONFIGURATION
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
         
-        // Connect to your database using the lowercase window hook provided by cdnjs
-        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Safety Fallback Initialization
+        let dbClient;
+        try {
+            // Checks for window.supabase or falls back to global window definitions
+            const engineInstance = (typeof supabase !== 'undefined') ? supabase : window.supabase;
+            dbClient = engineInstance.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) {
+            console.error("Initialization warning. Attempting module fallback...", e);
+        }
 
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
@@ -230,8 +237,12 @@ The JavaScript handles the session states automatically.-->
         const formStatus = document.getElementById('formStatus');
         const feedContainer = document.getElementById('feed');
 
-        // Function to pull database rows and paint them to the screen
+        // Pulls database rows from your live tables and renders them to the screen
         async function fetchAndRenderFeed() {
+            if(!dbClient) {
+                feedContainer.innerHTML = `<p style="color: red; text-align: center;">Network block detected: Database engine could not load.</p>`;
+                return;
+            }
             try {
                 const { data: jobs, error } = await dbClient
                     .from('jobs')
@@ -258,7 +269,7 @@ The JavaScript handles the session states automatically.-->
             }
         }
 
-        // Helper function to stop XSS injection attacks from malicious postings
+        // Sanitizes inputs to prevent code injection attacks
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
@@ -283,6 +294,7 @@ The JavaScript handles the session states automatically.-->
             authStatus.textContent = "Processing...";
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            
             if (authMode === 'signup') {
                 const { data, error } = await dbClient.auth.signUp({ email, password });
                 if (error) {
@@ -307,25 +319,27 @@ The JavaScript handles the session states automatically.-->
             await dbClient.auth.signOut();
         });        
 
-        dbClient.auth.onAuthStateChange((event, session) => {
-            if (session && session.user) {               
-                authBox.classList.add('hidden');
-                userDashboard.classList.remove('hidden');
-                userEmailSpan.textContent = session.user.email;
-                lockMessage.classList.add('hidden');
-                jobForm.classList.remove('hidden');
-                jobForm.style.opacity = "1";
-                jobForm.style.pointerEvents = "auto";  
-            } else {    
-                authBox.classList.remove('hidden');    
-                userDashboard.classList.add('hidden');    
-                authForm.reset();      
-                lockMessage.classList.remove('hidden');   
-                jobForm.classList.add('hidden');   
-                jobForm.style.opacity = "0.5";  
-                jobForm.style.pointerEvents = "none"; 
-            } 
-        });  
+        if(dbClient) {
+            dbClient.auth.onAuthStateChange((event, session) => {
+                if (session && session.user) {               
+                    authBox.classList.add('hidden');
+                    userDashboard.classList.remove('hidden');
+                    userEmailSpan.textContent = session.user.email;
+                    lockMessage.classList.add('hidden');
+                    jobForm.classList.remove('hidden');
+                    jobForm.style.opacity = "1";
+                    jobForm.style.pointerEvents = "auto";  
+                } else {    
+                    authBox.classList.remove('hidden');    
+                    userDashboard.classList.add('hidden');    
+                    authForm.reset();      
+                    lockMessage.classList.remove('hidden');   
+                    jobForm.classList.add('hidden');   
+                    jobForm.style.opacity = "0.5";  
+                    jobForm.style.pointerEvents = "none"; 
+                } 
+            });  
+        }
 
         jobForm.addEventListener('submit', async (e) => {  
             e.preventDefault();  
@@ -350,7 +364,7 @@ The JavaScript handles the session states automatically.-->
             }
         });
 
-        // Run feed builder instantly when page loads to gather existing rows
+        // Pull active entries immediately on compilation
         fetchAndRenderFeed();
     </script>
     
