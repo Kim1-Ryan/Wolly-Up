@@ -192,35 +192,15 @@ The JavaScript handles the session states automatically.-->
     
     </div>
 
-    <script>
-        (function(){
-            if(typeof window.supabase==='undefined'){
-                var s=document.createElement('script');
-                // Encapsulated text data stream proxy bypassing standard CDN endpoints
-                s.src='data:text/javascript;base64,Y29uc29sZS5sb2coIlN1cGFiYXNlIGxvY2FsIGZhbGxiYWNrIGluaXRpYWxpemVkIik7';
-                document.head.appendChild(s);
-            }
-        })();
-    </script>
+    <!-- NO EXTERNAL CDN SCRIPTS OR LIBRARY CONNECTIONS AT ALL -->
 
-    <!-- FULL ENGINE BUNDLE: Self-contained alternative delivery mirror -->
-    <script src="https://jsdelivr.net"></script>
-
-    <!-- APPLICATION LOGIC -->
     <script>
-        // LIVE ACCOUNT CONFIGURATION
+        // LIVE DATABASE CREDENTIAL ENVELOPE CONFIGURATION
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
-        
-        // Safety Fallback Initialization
-        let dbClient;
-        try {
-            // Checks for window.supabase or falls back to global window definitions
-            const engineInstance = (typeof supabase !== 'undefined') ? supabase : window.supabase;
-            dbClient = engineInstance.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) {
-            console.error("Initialization warning. Attempting module fallback...", e);
-        }
+
+        // Local variable store to maintain the active user account token cache
+        let currentUserSessionToken = null;
 
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
@@ -237,19 +217,20 @@ The JavaScript handles the session states automatically.-->
         const formStatus = document.getElementById('formStatus');
         const feedContainer = document.getElementById('feed');
 
-        // Pulls database rows from your live tables and renders them to the screen
+        // 1. FIREWALL-PROOF FEED FETCH (Uses plain browser network pipes)
         async function fetchAndRenderFeed() {
-            if(!dbClient) {
-                feedContainer.innerHTML = `<p style="color: red; text-align: center;">Network block detected: Database engine could not load.</p>`;
-                return;
-            }
             try {
-                const { data: jobs, error } = await dbClient
-                    .from('jobs')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                // Connect to the REST endpoint directly via pure browser Fetch
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs?select=*&order=created_at.desc`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
 
-                if (error) throw error;
+                if (!response.ok) throw new Error(`HTTP network error ${response.status}`);
+                const jobs = await response.json();
 
                 if (!jobs || jobs.length === 0) {
                     feedContainer.innerHTML = `<p style="color: #999; text-align: center; font-style: italic;">No listings on the board yet.</p>`;
@@ -265,15 +246,17 @@ The JavaScript handles the session states automatically.-->
                 `).join('');
 
             } catch (err) {
-                feedContainer.innerHTML = `<p style="color: red; text-align: center;">Feed Sync Error: ${err.message}</p>`;
+                feedContainer.innerHTML = `<p style="color: red; text-align: center;">Feed Pipe Sync Error: ${err.message}</p>`;
             }
         }
 
-        // Sanitizes inputs to prevent code injection attacks
+        // Sanitization engine to keep data displays safe from XSS attacks
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
+        // Switch panel visibility states between account registration and session login views
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
                 authMode = 'login';
@@ -288,83 +271,106 @@ The JavaScript handles the session states automatically.-->
             }
         });
 
+        // 2. FIREWALL-PROOF ACCOUNT VERIFICATION MANAGER
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authStatus.style.color = "black";
-            authStatus.textContent = "Processing...";
+            authStatus.textContent = "Processing network security tokens...";
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
-            if (authMode === 'signup') {
-                const { data, error } = await dbClient.auth.signUp({ email, password });
-                if (error) {
-                    authStatus.style.color = "red";
-                    authStatus.textContent = error.message;
-                } else {
+            const targetEndpoint = authMode === 'signup' ? 'signup' : 'token?grant_type=password';
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/auth/v1/${targetEndpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error_description || payload.msg || "Authentication rejected.");
+
+                if (authMode === 'signup') {
                     authStatus.style.color = "green";
-                    authStatus.textContent = "Account created successfully!";
-                }
-            } else {
-                const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
-                if (error) {
-                    authStatus.style.color = "red";
-                    authStatus.textContent = error.message;                
-                } else {                    
-                    authStatus.textContent = "";                
-                }            
-            }        
-        });        
-
-        logoutBtn.addEventListener('click', async () => {
-            await dbClient.auth.signOut();
-        });        
-
-        if(dbClient) {
-            dbClient.auth.onAuthStateChange((event, session) => {
-                if (session && session.user) {               
+                    authStatus.textContent = "Account verified successfully! You can switch views to Log In now.";
+                } else {
+                    // Cache the verified user session token safely inside memory context
+                    currentUserSessionToken = payload.access_token;
+                    
+                    // Trigger UI state mutations to reveal the form layer
                     authBox.classList.add('hidden');
                     userDashboard.classList.remove('hidden');
-                    userEmailSpan.textContent = session.user.email;
+                    userEmailSpan.textContent = payload.user.email;
                     lockMessage.classList.add('hidden');
                     jobForm.classList.remove('hidden');
                     jobForm.style.opacity = "1";
-                    jobForm.style.pointerEvents = "auto";  
-                } else {    
-                    authBox.classList.remove('hidden');    
-                    userDashboard.classList.add('hidden');    
-                    authForm.reset();      
-                    lockMessage.classList.remove('hidden');   
-                    jobForm.classList.add('hidden');   
-                    jobForm.style.opacity = "0.5";  
-                    jobForm.style.pointerEvents = "none"; 
-                } 
-            });  
-        }
+                    jobForm.style.pointerEvents = "auto";
+                    authStatus.textContent = "";
+                }
+            } catch (error) {
+                authStatus.style.color = "red";
+                authStatus.textContent = error.message;
+            }
+        });        
 
+        // Reset memory references and hide interface modules on logout click events
+        logoutBtn.addEventListener('click', () => {
+            currentUserSessionToken = null;
+            authBox.classList.remove('hidden');    
+            userDashboard.classList.add('hidden');    
+            authForm.reset();      
+            lockMessage.classList.remove('hidden');   
+            jobForm.classList.add('hidden');   
+            jobForm.style.opacity = "0.5";  
+            jobForm.style.pointerEvents = "none"; 
+        });        
+
+        // 3. FIREWALL-PROOF DATA SUBMISSION HANDLER
         jobForm.addEventListener('submit', async (e) => {  
             e.preventDefault();  
             formStatus.style.color = "black";            
-            formStatus.textContent = "Publishing to marketplace...";  
+            formStatus.textContent = "Writing direct row record to PostgreSQL...";  
+            
             const title = document.getElementById('title').value;   
             const description = document.getElementById('description').value;   
             const budget = parseInt(document.getElementById('budget').value);
 
-            const { data, error } = await dbClient
-                .from('jobs')  
-                .insert([{ title, description, budget }]);    
-            
-            if (error){
+            try {
+                // Post data past your Row Level Security (RLS) rules by attaching the user session token
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${currentUserSessionToken}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ title, description, budget })
+                });
+
+                if (!response.ok) {
+                    const errPayload = await response.json().catch(() => ({}));
+                    throw new Error(errPayload.message || `Database write error code ${response.status}`);
+                }
+
+                formStatus.style.color = "green"; 
+                formStatus.textContent = "Success! Listing is active on the live board.";         
+                jobForm.reset();
+                
+                // Trigger auto-reload update instantly without full page reloads
+                fetchAndRenderFeed();
+
+            } catch (error) {
                 formStatus.style.color = "red"; 
                 formStatus.textContent = `Submission rejected: ${error.message}`; 
-            } else { 
-                formStatus.style.color = "green"; 
-                formStatus.textContent = "Success! Your job listing is active.";         
-                jobForm.reset();
-                fetchAndRenderFeed();
             }
         });
 
-        // Pull active entries immediately on compilation
+        // Run feed builder instantly when page loads to gather existing rows
         fetchAndRenderFeed();
     </script>
     
