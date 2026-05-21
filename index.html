@@ -271,7 +271,7 @@ The JavaScript handles the session states automatically.-->
             }
         });
 
-        // 2. FIREWALL-PROOF ACCOUNT VERIFICATION MANAGER
+        // 2. FIREWALL-PROOF ACCOUNT VERIFICATION MANAGER (FULLY UPDATED)
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authStatus.style.color = "black";
@@ -288,11 +288,12 @@ The JavaScript handles the session states automatically.-->
                         'apikey': SUPABASE_ANON_KEY,
                         'Content-Type': 'application/json'
                     },
+                    // HERE IS WHERE THE FIXED PAYLOAD CODE LIVES:
                     body: JSON.stringify({ email, password })
                 });
 
                 const payload = await response.json();
-                if (!response.ok) throw new Error(payload.error_description || payload.msg || "Authentication rejected.");
+                if (!response.ok) throw new Error(payload.error_description || payload.msg || payload.message || "Authentication rejected.");
 
                 if (authMode === 'signup') {
                     authStatus.style.color = "green";
@@ -315,7 +316,7 @@ The JavaScript handles the session states automatically.-->
                 authStatus.style.color = "red";
                 authStatus.textContent = error.message;
             }
-        });        
+        });  
 
         // Reset memory references and hide interface modules on logout click events
         logoutBtn.addEventListener('click', () => {
