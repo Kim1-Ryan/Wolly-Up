@@ -13,31 +13,6 @@ Instead of writing custom API code or server scripts, you load their library dir
 2. The Database Setup (The SQL Side):
 Inside the Supabase dashboard, you can build tables visually or run a script in their SQL Editor.
 
-
-
-## To build the Upwork clone layout, you would run this command to establish your relational tables: 
-
-1. Create a profiles table tied to Supabase's secure Auth system
-
-```     create table public.profiles (                                ```
-```         id uuid references auth.users not null primary key,       ```
-```         full_name text,                                           ```
-```         role text check (role in ('client', 'freelancer'))        ```                                
-```     );                                                            ```
-
-2. Create the jobs table linked to the client profile
-
-```     create table public.jobs (                                    ```
-```         id gen_random_uuid() primary key,                         ```
-```         client_id uuid references public.profiles(id),            ```
-```         title text not null,                                      ```
-```         description text,                                         ```
-```         budget numeric,                                           ```
-```         created_at timestamp default now()                        ```   
-```     );                                                            ```                               
-
-
-
 ## Connecting Your Frontend HTML:
 
 ### To use *Supabase* with simple [HTML] and [JavaScript] without any complex buildup tools, you import the client library via a CDN link right inside your script tags.html
