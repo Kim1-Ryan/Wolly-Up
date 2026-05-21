@@ -201,9 +201,9 @@ The JavaScript handles the session states automatically.-->
     <script>
 
         // CONFIGURATION: Replace with your actual credentials
-        const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
+        const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co/rest/v1/"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
