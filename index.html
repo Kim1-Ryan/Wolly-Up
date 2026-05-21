@@ -194,13 +194,16 @@ The JavaScript handles the session states automatically.-->
 
 
 
-    <!-- FIXED SOURCE LINK: Swapped out broken jsdelivr index url to load Supabase SDK -->
-    <script src="https://unpkg.com"></script>
+    <!-- Load the library from a different, unblocked mirror endpoint -->
+    <script src="https://cloudflare.com"></script>
+
 
     <script>
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
-        const dbClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // FIXED: Using lowercase 'supabase' to align with the global window CDN package rules
+        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
