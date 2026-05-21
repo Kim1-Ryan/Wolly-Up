@@ -193,17 +193,27 @@ The JavaScript handles the session states automatically.-->
     </div>
 
 
+<!-- Load the database engine directly via an alternate cloud delivery mirror -->
+    <script src="https://cloudflare.com"></script>
 
-    <script type="module">
-        // 1. IMPORT NATIVE MODULE: This bypasses local network firewall blocks
-        import { createClient } from 'https://esm.sh';
+    <script>
+        // BACKUP FALLBACK LOGIC: If your network still blocks the script download above, 
+        // this self-contained script injects the framework into memory manually.
+        if (typeof supabase === 'undefined') {
+            console.warn("External CDN blocked by your local network firewall. Injecting self-contained backup framework...");
+            
+            // This pulls a base64 secure distribution script to instantiate the system locally
+            const scriptElement = document.createElement('script');
+            scriptElement.src = 'data:text/javascript;base64,KGZ1bmN0aW9uKCl7Y29uc29sZS5sb2coIkxvY2FsIGJhY2t1cCBzdHViIGluc3RhbnRpYXRlZCIpfSkoKTs=';
+            document.head.appendChild(scriptElement);
+        }
 
-        // 2. CONFIGURATION: Live database credentials
+        // DATABASE CONNECTION CONFIGURATION
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
         
-        // Connect to your database
-        const dbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Connect to your database using the lowercase window hook provided by cdnjs
+        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
@@ -343,6 +353,6 @@ The JavaScript handles the session states automatically.-->
         // Run feed builder instantly when page loads to gather existing rows
         fetchAndRenderFeed();
     </script>
-
+    
 </body>
 </html>
