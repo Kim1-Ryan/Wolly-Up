@@ -194,17 +194,17 @@ The JavaScript handles the session states automatically.-->
 
 
 
-    <!-- Load the library from a different, unblocked mirror endpoint -->
-    <script src="https://cloudflare.com"></script>
+    <script type="module">
+        // 1. IMPORT NATIVE MODULE: This bypasses local network firewall blocks
+        import { createClient } from 'https://esm.sh';
 
-
-    <script>
+        // 2. CONFIGURATION: Live database credentials
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
         
-        // FIXED: Using lowercase 'supabase' to align with the global window CDN package rules
-        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+        // Connect to your database
+        const dbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
         const authTitle = document.getElementById('authTitle');
@@ -219,7 +219,7 @@ The JavaScript handles the session states automatically.-->
         const jobForm = document.getElementById('jobForm');
         const formStatus = document.getElementById('formStatus');
         const feedContainer = document.getElementById('feed');
-        
+
         // Function to pull database rows and paint them to the screen
         async function fetchAndRenderFeed() {
             try {
@@ -227,14 +227,14 @@ The JavaScript handles the session states automatically.-->
                     .from('jobs')
                     .select('*')
                     .order('created_at', { ascending: false });
-        
+
                 if (error) throw error;
-        
+
                 if (!jobs || jobs.length === 0) {
                     feedContainer.innerHTML = `<p style="color: #999; text-align: center; font-style: italic;">No listings on the board yet.</p>`;
                     return;
                 }
-        
+
                 feedContainer.innerHTML = jobs.map(job => `
                     <div class="job-card">
                         <h3 class="job-card-title">${escapeHTML(job.title)}</h3>
@@ -242,17 +242,17 @@ The JavaScript handles the session states automatically.-->
                         <div class="job-card-budget">Est. Budget: $${job.budget}</div>
                     </div>
                 `).join('');
-        
+
             } catch (err) {
                 feedContainer.innerHTML = `<p style="color: red; text-align: center;">Feed Sync Error: ${err.message}</p>`;
             }
         }
-        
-        // FIXED SYNTAX: Properly escaped single quote identifier to prevent compilation crashes
+
+        // Helper function to stop XSS injection attacks from malicious postings
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
-        
+
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
                 authMode = 'login';
@@ -266,7 +266,7 @@ The JavaScript handles the session states automatically.-->
                 toggleAuthBtn.textContent = "Already have an account? Log In";
             }
         });
-        
+
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authStatus.style.color = "black";
@@ -280,7 +280,7 @@ The JavaScript handles the session states automatically.-->
                     authStatus.textContent = error.message;
                 } else {
                     authStatus.style.color = "green";
-                    authStatus.textContent = "Account verification email sent! Check your inbox.";
+                    authStatus.textContent = "Account created successfully!";
                 }
             } else {
                 const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
@@ -292,11 +292,11 @@ The JavaScript handles the session states automatically.-->
                 }            
             }        
         });        
-        
+
         logoutBtn.addEventListener('click', async () => {
             await dbClient.auth.signOut();
         });        
-        
+
         dbClient.auth.onAuthStateChange((event, session) => {
             if (session && session.user) {               
                 authBox.classList.add('hidden');
@@ -316,7 +316,7 @@ The JavaScript handles the session states automatically.-->
                 jobForm.style.pointerEvents = "none"; 
             } 
         });  
-        
+
         jobForm.addEventListener('submit', async (e) => {  
             e.preventDefault();  
             formStatus.style.color = "black";            
@@ -324,7 +324,7 @@ The JavaScript handles the session states automatically.-->
             const title = document.getElementById('title').value;   
             const description = document.getElementById('description').value;   
             const budget = parseInt(document.getElementById('budget').value);
-        
+
             const { data, error } = await dbClient
                 .from('jobs')  
                 .insert([{ title, description, budget }]);    
@@ -339,7 +339,7 @@ The JavaScript handles the session states automatically.-->
                 fetchAndRenderFeed();
             }
         });
-        
+
         // Run feed builder instantly when page loads to gather existing rows
         fetchAndRenderFeed();
     </script>
