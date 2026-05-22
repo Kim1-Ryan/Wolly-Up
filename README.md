@@ -18,41 +18,10 @@ Inside the Supabase dashboard, you can build tables visually or run a script in 
 
 ### To use *Supabase* with simple [HTML] and [JavaScript] without any complex buildup tools, you import the client library via a CDN link right inside your script tags.html
 
-
-<!-- Load the Supabase JS library from a global CDN -->
-<script src="https://jsdelivr.net"></script>
-
-<script>
   // Initialize connection with your project credentials
   const supabaseUrl = 'https://supabase.co';
   const supabaseKey = 'your-anon-public-api-key';
   const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
-
-  // Example: How to securely register a new freelancer user account
-  async function registerUser(email, password, fullName) {
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: { data: { full_name: fullName, role: 'freelancer' } }
-    });
-    
-    if (error) console.error("Signup failed:", error.message);
-    else alert("Account created securely!");
-  }
-
-  // Example: How to insert a job into your Postgres SQL table
-  async function submitJobToSQL(title, description, budgetAmount) {
-    const { data, error } = await supabase
-      .from('jobs')
-      .insert([
-        { title: title, description: description, budget: budgetAmount }
-      ]);
-      
-    if (error) console.error("Database write error:", error.message);
-    else alert("Saved to true SQL database!");
-  }
-</script>
-
 
 
 ## Setting Up Your Free Supabase Account:
@@ -78,22 +47,7 @@ Once the project provisions (takes about 1-2 minutes):
 
 1. On the left sidebar, click on SQL Editor (the >_ icon).
 2. Click New Query.
-3. Paste the following SQL script to create a public jobs table and click Run:
-
-create table public.jobs (
-  id uuid default gen_random_uuid() primary key,
-  title text not null,
-  description text not null,
-  budget numeric not null,
-  created_at timestamp default now()
-);
-
--- Populate it with your custom local coaching listings
-
-insert into public.jobs (title, description, budget) values
-('Golf trainer', 'Looking for a coach to teach my two teenagers how to play golf.', 500),
-('Chess lessons', 'Need an experienced, competitive chess player to improve my game before the next tournament.', 250),
-('Dota coach needed', 'Highschool team needs a coach for the next DOTA 2 Tournament.', 400);
+3. Create your SQL script and click Run.
 
 
 ## To require users to log in before they can post a job, you need two things: 
@@ -105,21 +59,6 @@ insert into public.jobs (title, description, budget) values
 
 - By default, anyone with your public API key could theoretically bypass your form and spam your database. 
 - We need to tell your Supabase Postgres database to enforce user logins.
-
-### Go to your Supabase Dashboard > SQL Editor, paste this script, and click Run:
--- Turn on Row Level Security
-alter table public.jobs enable row level security;
-
--- Let everyone read the listings feed
-create policy "Allow public read access" 
-on public.jobs for select 
-using (true);
-
--- Only let logged-in accounts post new listings
-create policy "Allow authenticated inserts" 
-on public.jobs for insert 
-to authenticated 
-with check (true);
 
 
 ## How to update/link your previous form submission frontend so that it pushes data directly into your newly protected Supabase database table:
