@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Profile - Wolly-Up</title>
+    <!-- Links directly to your central Upwork Emerald stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- BRAND NAVIGATION HEADER BAR -->
+    <div class="user-header-bar">
+        <div class="brand-text" onclick="window.location.href='index.html'" style="cursor: pointer;">Wolly-Up Marketplace</div>
+        <div class="profile-icon" onclick="window.location.href='index.html'">↩️</div>
+    </div>
+
+    <!-- MAIN DEDICATED VIEW AREA CONTAINER -->
+    <div style="max-width: 750px; margin: 0 auto; padding: 10px;">
+        
+        <button type="button" class="tab-btn active" onclick="window.location.href='index.html'" style="margin-bottom: 24px;">
+            ⬅️ Back to Job Board Feed
+        </button>
+        
+        <!-- ACCOUNT ACCOUNT METADATA & PROFILE MATRIX SHEETS -->
+        <div class="box">
+            <h2 style="text-align: left; color: var(--primary-green); border-bottom: 2px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                👤 Professional Marketplace Profile
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Account Email</span>
+                    <div id="profViewEmail" style="font-size: 1.1rem; font-weight: bold; margin-top: 4px; color: #111;">-</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Marketplace Context</span>
+                    <div id="profViewRole" style="font-size: 1.1rem; font-weight: bold; margin-top: 4px; color: var(--primary-green); text-transform: uppercase;">-</div>
+                </div>
+            </div>
+
+            <!-- SCORE CARD CONSOLE OVERLAYS -->
+            <div style="margin-bottom: 25px; background: #fffdf5; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px;">
+                <h3 style="font-size: 1rem; margin-top: 0; margin-bottom: 8px; color: #856404;">📊 Platform Reputation</h3>
+                <div style="font-size: 1.15rem; font-weight: bold; color: #222;">
+                    Average Performance Score: <span id="profViewRating" style="color: #ffc107;">⭐ Unrated</span>
+                </div>
+            </div>
+
+            <!-- AUTOMATED BIOGRAPHY BIOGRAPHY INPUT FORMS PANEL -->
+            <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #111; border-top: 1px dashed var(--border-color); padding-top: 24px;">
+                ✏️ Edit Custom Biography Parameters
+            </h3>
+            
+            <form id="profileEditForm">
+                <div class="form-group">
+                    <label for="profileCredentialsInput">Professional Credentials & Certifications</label>
+                    <input type="text" id="profileCredentialsInput" placeholder="e.g., PGA Professional Coach, Chess Grandmaster, Senior Esports Consultant">
+                </div>
+                
+                <div class="form-group">
+                    <label for="profileExperienceInput">Experience Summary & Background Summary</label>
+                    <textarea id="profileExperienceInput" rows="5" placeholder="Highlight your career background, milestones, hourly frameworks, or past student achievements to pitch clients..."></textarea>
+                </div>
+                
+                <button type="submit" id="saveProfileBtn" style="background: #007bff;">Update Profile Information</button>
+            </form>
+            <div id="profileStatusMsg"></div>
+        </div>
+
+        <!-- REPUTATION REVIEWS PUBLIC LEDGER VISUAL OVERLAYS -->
+        <div class="box">
+            <h3 style="margin-top: 0; margin-bottom: 16px; color: #111; font-weight: 600;">💬 Verified Client Feedback Ledger Log</h3>
+            <div id="profileReviewsContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                <p style="color: #888; font-style: italic; text-align: center; padding: 15px;">Syncing historical data entries...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LINK THE TAILORED PROCESSING LOGIC COMPONENT SCRIPT -->
+    <script src="profile.js"></script>
+</body>
+</html>

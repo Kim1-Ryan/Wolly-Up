@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Freelance Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- BRAND PLATFORM BAR NAVIGATION -->
+    <div class="user-header-bar">
+        <a href="index.html" class="brand-text">Wolly-Up Marketplace</a>
+        <!-- PROFILE ACCESSIBILITY TRIGGER LOGGED IN ICON -->
+        <a href="userProfile.html" id="userProfileIcon" class="profile-icon hidden">U</a>
+    </div>
+
+    <!-- MAIN CORE MARKETPLACE BOARD -->
+    <div class="app-layout-grid">
+        
+        <!-- LEFT CONTROL ACTION COLUMN -->
+        <div>
+            <!-- GATEWAY ACCESS AUTHORIZATION CONSOLE (Hides fully on session activation) -->
+            <div id="authBox" class="box">
+                <h2 id="authTitle">Create Marketplace Account</h2>
+                <form id="authForm">
+                    <div class="form-group" id="accountTypeContainer">
+                        <label style="text-align: center; margin-bottom: 8px;">Select Your Account Role:</label>
+                        <div class="account-type-group">
+                            <label><input type="radio" name="accountType" value="client" checked> Post Jobs (Client)</label>
+                            <label><input type="radio" name="accountType" value="freelancer"> Apply for Jobs (Freelancer)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required minlength="6">
+                    </div>
+                    <button type="submit" id="authBtn">Sign Up</button>
+                    <button type="button" id="toggleAuthBtn" class="secondary">Already have an account? Log In</button>
+                </form>
+                <div id="status"></div>
+            </div>
+
+            <!-- COMPACT CLIENT USER OVERVIEW FORM WORKSPACE -->
+            <div id="userDashboard" class="box hidden">
+                <h2 style="text-align:left; font-size:1.15rem; margin-bottom:12px; color:var(--primary-green);">⚡ Workspace Manager</h2>
+                <p style="margin: 0 0 6px 0; font-size:0.92rem;">User Account: <span id="userEmail" style="font-weight: bold;"></span></p>
+                <p style="font-size: 0.88rem; color: var(--slate-gray); margin-top: 0; margin-bottom: 16px;">Active Interface Context: <span id="userRoleBadge" style="font-weight: bold; text-transform: uppercase;"></span></p>
+                <button id="roleSwapBtn" class="role-swap-btn">🔄 Switch to Opposite Role View</button>
+                <button id="logoutBtn" class="secondary">Log Out Session</button>
+            </div>    
+
+            <!-- RE-ORGANIZED SPECIFIC MODULE: POST JOBS FORM -->
+            <div id="jobBox" class="box hidden">
+                <h2>Post a Freelance Job</h2>
+                <form id="jobForm">
+                    <div class="form-group">
+                        <label for="title">Job Title</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Job Category</label>
+                        <select id="category">
+                            <option value="Sports">Sports Coaching</option>
+                            <option value="Gaming">Gaming / Esport</option>
+                            <option value="Chess">Chess Lessons</option>
+                            <option value="General">General Freelance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="budget">Budget ($)</label>
+                        <input type="number" id="budget" min="1" required>
+                    </div>
+                    <button type="submit">Publish Job Listing</button>
+                </form>
+                <div id="formStatus"></div>       
+            </div>
+
+            <!-- RE-ORGANIZED SPECIFIC MODULE: FREELANCER APPLICATIONS CONSOLE -->
+            <div id="applyBox" class="box hidden">
+                <h2>Apply for Position</h2>
+                <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px;">Bidding on: <strong id="applyJobTitle" style="color: #10a37f;"></strong></p>
+                <div class="form-group">
+                    <label for="bidText">Your Proposal Offer</label>
+                    <textarea id="bidText" placeholder="Outline your specific coaching experience details..." rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bidAmount">Bid Quote ($)</label>
+                    <input type="number" id="bidAmount" min="1" required>
+                </div>
+                <div style="display:flex; gap:10px;">
+                     <button type="button" id="submitBidBtn" style="flex:2;">Submit Official Pitch</button>
+                     <button type="button" id="cancelBidBtn" class="secondary" style="flex:1; margin:0;">Cancel</button>
+                </div>
+                <div id="bidStatus"></div>
+            </div>
+
+            <!-- RE-ORGANIZED SPECIFIC MODULE: RELATIONAL WORKFLOW LIST TRACK TRACKER -->
+            <div id="historyBox" class="box hidden">
+                <h2>Your Tracking History</h2>
+                <div style="margin-bottom: 16px; display: flex; gap: 8px;">
+                    <button id="tabLeft" class="tab-btn active" style="flex: 1;">My Posts</button>
+                    <button id="tabRight" class="tab-btn" style="flex: 1;">Bids Received</button>
+                </div>
+                <div id="historyList">Syncing history logs...</div>
+            </div>
+
+            <!-- INTRODUCTORY LOCK MESSAGES BANNER -->
+            <div id="lockMessage" class="alert-info-banner">
+                ℹ️ Welcome to Wolly-Up! Create an account or log in inside the access gateway to unlock transaction proposal tabs and active job postings elements.
+            </div>
+        </div>
+
+        <!-- RIGHT FEED STREAM COLUMN PANEL -->
+        <div id="feedBox" class="box">
+            <h2>Active Job Board</h2>
+            <div class="search-controls">
+                <input type="text" id="searchBar" placeholder="Search title or keywords...">
+                <select id="filterCategory">
+                    <option value="ALL">All Categories</option>
+                    <option value="Sports">Sports Coaching</option>
+                    <option value="Gaming">Gaming / Esport</option>
+                    <option value="Chess">Chess Lessons</option>
+                    <option value="General">General Freelance</option>
+                </select>
+            </div>
+            <div id="feed" class="feed-container">
+                <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIPELINE LOGIC LINK CONNECTIONS -->
+    <script src="index.js"></script>
+</body>
+</html>
