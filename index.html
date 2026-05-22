@@ -271,12 +271,13 @@
          aggressive local network firewall/router blocks that crash jsdelivr networks -->
     <script src="https://cloudflare.com"></script>
 
+        
     <script>
+        
         // GLOBAL APPIICATION STATE REFERENCE CONFIGURATIONS
         const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
-        // Global memory context objects to track user tokens, roles, and UI selections
         let currentUserSessionToken = null;
         let loggedInUserId = null;
         let loggedInUserEmail = null;
@@ -284,23 +285,20 @@
         let cachedJobsList = [];      
         let selectedJobId = null;     
         let activeHistoryTab = 'left'; 
-        let authMode = 'signup'; 
 
-        // DOM CORE LAYOUT ELEMENT REFERENCES MATRIX
+        let authMode = 'signup'; 
         const authForm = document.getElementById('authForm');
         const authTitle = document.getElementById('authTitle');
         const authBtn = document.getElementById('authBtn');
         const toggleAuthBtn = document.getElementById('toggleAuthBtn');
         const accountTypeContainer = document.getElementById('accountTypeContainer');
         const authStatus = document.getElementById('status');
-        
         const authBox = document.getElementById('authBox');
         const userDashboard = document.getElementById('userDashboard');
         const userEmailSpan = document.getElementById('userEmail');
         const userRoleBadge = document.getElementById('userRoleBadge');
         const roleSwapBtn = document.getElementById('roleSwapBtn');
         const logoutBtn = document.getElementById('logoutBtn');    
-        
         const lockMessage = document.getElementById('lockMessage');
         const jobBox = document.getElementById('jobBox');
         const jobForm = document.getElementById('jobForm');
@@ -309,61 +307,32 @@
         const applyJobTitle = document.getElementById('applyJobTitle');
         const submitBidBtn = document.getElementById('submitBidBtn');
         const bidStatus = document.getElementById('bidStatus');
-        
         const historyBox = document.getElementById('historyBox');
         const historyList = document.getElementById('historyList');
         const tabLeft = document.getElementById('tabLeft');
         const tabRight = document.getElementById('tabRight');
-        
         const feedContainer = document.getElementById('feed');
         const searchBar = document.getElementById('searchBar');
         const filterCategory = document.getElementById('filterCategory');
-
-        // MODAL PANEL ELEMENT TREE MAPPINGS
-        const profileModal = document.getElementById('profileModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const modalProfileTitle = document.getElementById('modalProfileTitle');
-        const modalViewSection = document.getElementById('modalViewSection');
-        const modalEditSection = document.getElementById('modalEditSection');
-        const btnEditProfileMode = document.getElementById('btnEditProfileMode');
-        const btnCancelEditMode = document.getElementById('btnCancelEditMode');
-        const modalProfileForm = document.getElementById('modalProfileForm');
-        const modalProfileStatus = document.getElementById('modalProfileStatus');
-
-        const lblModalCredentials = document.getElementById('lblModalCredentials');
-        const lblModalExperience = document.getElementById('lblModalExperience');
-        const lblModalRating = document.getElementById('lblModalRating');
-        const modalReviewsList = document.getElementById('modalReviewsList');
-        const txtModalCredentials = document.getElementById('txtModalCredentials');
-        const txtModalExperience = document.getElementById('txtModalExperience');
-
-        // COMPILATION WRAPPER SETUP FOR THE SAFE NATIVE DRIVER PIPELINE INTERFACE
-        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // 1. DATA ACCESS LOGIC PIPELINES: SYNC MARKETPLACE FEED ROWS
+        // 1. FILTER HOOKS & ACTIVE BOARD GENERATOR
         async function fetchAndRenderFeed() {
             try {
-                // Issue a secure query request for all columns from the public jobs table sorted by newest postings
-                const { data: jobs, error } = await dbClient
-                    .from('jobs')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                
-                // Cache the array records locally to enable instant keyword filtration loops without querying the database again
-                cachedJobsList = jobs || [];
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs?select=*&order=created_at.desc`, {
+                    method: 'GET',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+                });
+                if (!response.ok) throw new Error(`HTTP error status ${response.status}`);
+                cachedJobsList = await response.json();
                 applyFiltersAndRender();
             } catch (err) { 
-                feedContainer.innerHTML = `<p style="color: #ba1a1a; text-align: center; font-weight: bold;">Feed Generation Error: ${err.message}</p>`; 
+                feedContainer.innerHTML = `<p style="color: red; text-align: center;">Feed Connection Failed: ${err.message}</p>`;
             }
         }
 
-        // KEYWORD AND CATEGORY FILTER COMPILATION ENGINE
         function applyFiltersAndRender() {
             const searchKeyword = searchBar.value.toLowerCase();
             const categorySelection = filterCategory.value;
 
-            // Loop through cached array tracking match strings
             const filteredJobs = cachedJobsList.filter(job => {
                 const matchesSearch = job.title.toLowerCase().includes(searchKeyword) || job.description.toLowerCase().includes(searchKeyword);
                 const matchesCategory = (categorySelection === 'ALL') || (job.category === categorySelection);
@@ -371,30 +340,26 @@
             });
 
             if (filteredJobs.length === 0) {
-                feedContainer.innerHTML = `<p style="color: #666; text-align: center; font-style: italic; padding: 20px;">No matching freelance listings found on the board right now.</p>`;
+                feedContainer.innerHTML = `<p style="color: #999; text-align: center; font-style: italic;">No active marketplace matches found.</p>`;
                 return;
             }
 
-            // Map row data matrices into highly interactive template layouts
             feedContainer.innerHTML = filteredJobs.map(job => `
                 <div class="job-card ${selectedJobId === job.id ? 'selected' : ''}" onclick="handleJobCardSelection('${job.id}', '${escapeHTML(job.title)}')">
                     <span class="category-badge">${escapeHTML(job.category || 'General')}</span>
                     <h3 class="job-card-title">${escapeHTML(job.title)}</h3>
-                    <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.45;">${escapeHTML(job.description)}</p>
+                    <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.4;">${escapeHTML(job.description)}</p>
                     <div class="job-card-budget">Est. Budget: $${job.budget}</div>
                 </div>
             `).join('');
         }
 
-        // Assign listener hooks directly to search control hub fields
         searchBar.addEventListener('input', applyFiltersAndRender);
         filterCategory.addEventListener('change', applyFiltersAndRender);
-                // 2. USER INTERACTION HOOKS: SELECTION AND OVERLAY VIEW CONTROLLERS
-        window.handleJobCardSelection = function(jobId, jobTitle) {
+                window.handleJobCardSelection = function(jobId, jobTitle) {
             selectedJobId = jobId;
-            applyFiltersAndRender(); // Repaint selection highlight states instantly
+            applyFiltersAndRender(); 
             
-            // Adjust form visibility bounds depending on account configuration rules
             if (currentUserSessionToken && loggedInUserRole === 'freelancer') {
                 applyBox.classList.remove('hidden');
                 lockMessage.classList.add('hidden');
@@ -402,161 +367,40 @@
                 bidStatus.textContent = "";
             } else if (currentUserSessionToken && loggedInUserRole === 'client') {
                 applyBox.classList.add('hidden');
-                lockMessage.innerHTML = `ℹ️ You are currently viewing the platform as a Client. Only Freelancers can submit proposal offers.`;
+                lockMessage.innerHTML = `ℹ️ You are logged in as a Client. Switch view to Freelancer to apply for positions.`;
                 lockMessage.classList.remove('hidden');
             } else {
                 applyBox.classList.add('hidden');
-                lockMessage.innerHTML = `⚠️ <strong>Access Denied:</strong> You must create a Freelancer account or log in to submit a pitch for <em>"${jobTitle}"</em>.`;
+                lockMessage.innerHTML = `⚠️ <strong>Access Denied:</strong> Log in as a Freelancer to apply for <em>"${jobTitle}"</em>.`;
                 lockMessage.classList.remove('hidden');
             }
         };
 
-        // PRIORITIZED CENTERED FULL MODAL PROFILE LOOKUP PIPELINE
-        // Triggers an unblocked query to build profile reviews, score calculations, and history logs
-        window.openPrioritizedProfileModal = async function(userIdString) {
-            modalProfileStatus.textContent = "";
-            modalReviewsList.innerHTML = `<p style="color: #666; font-style: italic;">Loading credentials log histories...</p>`;
-            
-            try {
-                // Fetch profile metadata details row
-                const { data: profileArray, error: profileErr } = await dbClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userIdString);
-
-                if (profileErr) throw profileErr;
-                const profile = profileArray[0];
-                if (!profile) return;
-
-                // Fetch historic reputation feedback metrics
-                const { data: reviews, error: reviewsErr } = await dbClient
-                    .from('reviews')
-                    .select('*')
-                    .eq('recipient_id', userIdString);
-
-                if (reviewsErr) throw reviewsErr;
-
-                // Calculate global profile star metrics arrays
-                let totalStars = 0;
-                reviews.forEach(r => totalStars += Number(r.rating_score || 0));
-                const averageRating = reviews.length > 0 ? (totalStars / reviews.length).toFixed(1) : "Unrated";
-
-                // Populate template nodes inside the prioritized centered overlay modal
-                modalProfileTitle.textContent = `Profile Sheet: ${escapeHTML(profile.email)}`;
-                lblModalCredentials.textContent = profile.credentials || "No certification credentials listed yet.";
-                lblModalExperience.textContent = profile.experience || "No background bio provided by the user yet.";
-                lblModalRating.innerHTML = averageRating !== "Unrated" ? `⭐ ${averageRating} / 5.0 (${reviews.length} reviews)` : `⭐ Unrated`;
-
-                // Render specific history review log nodes
-                if (!reviews || reviews.length === 0) {
-                    modalReviewsList.innerHTML = `<p style="color: #888; font-style: italic; text-align: center;">No contract feedback entries left for this account yet.</p>`;
-                } else {
-                    modalReviewsList.innerHTML = reviews.map(r => `
-                        <div style="background: #f8faf9; border: 1px solid #e0e0e0; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
-                            <div style="font-weight: bold; color: #14a800; font-size: 0.85rem;">Rating Given: ⭐ ${r.rating_score} / 5</div>
-                            <p style="margin: 5px 0 0 0; color: #444; font-size: 0.85rem; line-height: 1.3;">"${escapeHTML(r.comment_text)}"</p>
-                        </div>
-                    `).join('');
-                }
-
-                // Restrict edit capabilities solely to the true account profile owner row
-                if (currentUserSessionToken && loggedInUserId === userIdString) {
-                    btnEditProfileMode.classList.remove('hidden');
-                    txtModalCredentials.value = profile.credentials || "";
-                    txtModalExperience.value = profile.experience || "";
-                } else {
-                    btnEditProfileMode.classList.add('hidden');
-                }
-
-                // Expose modal box elements and isolate visibility focuses
-                modalViewSection.classList.remove('hidden');
-                modalEditSection.classList.add('hidden');
-                profileModal.classList.remove('hidden');
-
-            } catch (err) { 
-                alert(`Profile Sync Failure: ${err.message}`); 
-            }
-        };
-
-                // MODAL DISPLAY OVERLAY INTERACTIVE BUTTON LISTENERS
-        closeModalBtn.addEventListener('click', () => { profileModal.classList.add('hidden'); });
-        
-        btnEditProfileMode.addEventListener('click', () => {
-            modalViewSection.classList.add('hidden');
-            modalEditSection.classList.remove('hidden');
-        });
-        
-        btnCancelEditMode.addEventListener('click', () => {
-            modalViewSection.classList.remove('hidden');
-            modalEditSection.classList.add('hidden');
-        });
-
-        // SAVE PROFILE BIO MODIFICATIONS EVENT HANDLER
-        modalProfileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            modalProfileStatus.style.color = "#333";
-            modalProfileStatus.textContent = "Updating database profile record...";
-
-            const newCredentials = txtModalCredentials.value;
-            const newExperience = txtModalExperience.value;
-
-            try {
-                const { error } = await dbClient
-                    .from('profiles')
-                    .update({ credentials: newCredentials, experience: newExperience })
-                    .eq('id', loggedInUserId);
-
-                if (error) throw error;
-
-                modalProfileStatus.style.color = "#14a800";
-                modalProfileStatus.textContent = "Success! Biography log rewritten.";
-                
-                // Instantly sync layout views to reflect modifications
-                setTimeout(() => {
-                    openPrioritizedProfileModal(loggedInUserId);
-                }, 800);
-
-            } catch (err) {
-                modalProfileStatus.style.color = "#ba1a1a";
-                modalProfileStatus.textContent = `Update failed: ${err.message}`;
-            }
-        });
-
-        // 3. APPLICATION HANDLING: TRANSMIT FREELANCER PROPOSALS TO DATABASE
+                // 2. TRANSMIT FREELANCER BID OFFERS TO SQL
         submitBidBtn.addEventListener('click', async () => {
             const bidText = document.getElementById('bidText').value;
             const bidAmount = parseInt(document.getElementById('bidAmount').value);
-            if (!bidText || !bidAmount || !selectedJobId) return;
+            if(!bidText || !bidAmount || !selectedJobId) return;
 
-            bidStatus.style.color = "#333";
-            bidStatus.textContent = "Transmitting offer pitch...";
+            bidStatus.style.color = "black";
+            bidStatus.textContent = "Transmitting pitch to Supabase...";
 
             try {
-                const { error } = await dbClient
-                    .from('bids')
-                    .insert([{ 
-                        job_id: selectedJobId, 
-                        freelancer_email: loggedInUserEmail, 
-                        proposal_text: bidText, 
-                        bid_amount: bidAmount, 
-                        user_id: loggedInUserId, 
-                        status: 'pending' 
-                    }]);
-
-                if (error) throw error;
-
-                bidStatus.style.color = "#14a800";
-                bidStatus.textContent = "Success! Proposal published to client board.";
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bids`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ job_id: selectedJobId, freelancer_email: loggedInUserEmail, proposal_text: bidText, bid_amount: bidAmount, user_id: loggedInUserId, status: 'pending' })
+                });
+                if (!response.ok) throw new Error("Database rejected submission parameters");
+                bidStatus.style.color = "green";
+                bidStatus.textContent = "Application saved to database!";
                 document.getElementById('bidText').value = '';
                 document.getElementById('bidAmount').value = '';
                 fetchAndRenderHistory();
-            } catch (err) { 
-                bidStatus.style.color = "#ba1a1a"; 
-                bidStatus.textContent = `Bidding error: ${err.message}`; 
-            }
+            } catch (err) { bidStatus.style.color = "red"; bidStatus.textContent = err.message; }
         });
 
-                // 4. TRANSACTION REPOSITORY TABLES: SYNCHRONIZE PERSONAL DASHBOARD GRIDS
+                // 3. TRACKING DASHBOARD HISTORY LOGS MANAGER
         async function fetchAndRenderHistory() {
             if (!currentUserSessionToken) return;
             try {
@@ -565,15 +409,12 @@
                     tabRight.textContent = "Active Quotes Given";
 
                     if (activeHistoryTab === 'left') {
-                        // Query applications matching freelancer profile user ID string
-                        const { data, error } = await dbClient
-                            .from('bids')
-                            .select('*, jobs(title,category)')
-                            .eq('user_id', loggedInUserId);
-
-                        if (error) throw error;
-
-                        historyList.innerHTML = (!data || data.length === 0) ? '<p style="text-align:center;color:#666;font-style:italic;">You have not applied to any job slots yet.</p>' :
+                        const resp = await fetch(`${SUPABASE_URL}/rest/v1/bids?user_id=eq.${loggedInUserId}&select=*,jobs(title,category)`, {
+                            method: 'GET',
+                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
+                        });
+                        const data = await resp.json();
+                        historyList.innerHTML = (!data || data.length === 0) ? '<p>You have not applied to any jobs yet.</p>' :
                             data.map(b => `
                                 <div class="history-item">
                                     Applied to <strong>${escapeHTML(b.jobs?.title)}</strong><br>
@@ -582,48 +423,38 @@
                                 </div>
                             `).join('');
                     } else {
-                        historyList.innerHTML = '<p style="text-align:center;color:#666;font-style:italic;">No custom freelancer payment offer tokens pending.</p>';
+                        historyList.innerHTML = '<p>No custom billing offer tokens pending at this stage.</p>';
                     }
                 } else {
                     tabLeft.textContent = "My Posted Listings";
                     tabRight.textContent = "Applications Received";
 
                     if (activeHistoryTab === 'left') {
-                        // Query job records created by this client user ID string
-                        const { data, error } = await dbClient
-                            .from('jobs')
-                            .select('*')
-                            .eq('user_id', loggedInUserId);
-
-                        if (error) throw error;
-
-                        historyList.innerHTML = (!data || data.length === 0) ? '<p style="text-align:center;color:#666;font-style:italic;">You have not published any job listings yet.</p>' :
+                        const resp = await fetch(`${SUPABASE_URL}/rest/v1/jobs?user_id=eq.${loggedInUserId}&select=*`, {
+                            method: 'GET',
+                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
+                        });
+                        const data = await resp.json();
+                        historyList.innerHTML = (!data || data.length === 0) ? '<p>You have not published any listings yet.</p>' :
                             data.map(j => `<div class="history-item">Listed: <strong>${escapeHTML(j.title)}</strong> [${escapeHTML(j.category)}] - Budget: $${j.budget}</div>`).join('');
                     } else {
-                        // Query applications received on the client's postings
-                        const { data, error } = await dbClient
-                            .from('bids')
-                            .select('*, jobs!inner(title,user_id)');
-
-                        if (error) throw error;
-
-                        // Filter values locally to match client profile user ID string references
+                        const resp = await fetch(`${SUPABASE_URL}/rest/v1/bids?select=*,jobs!inner(title,user_id)`, {
+                            method: 'GET',
+                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
+                        });
+                        const data = await resp.json();
                         const filtered = data.filter(b => b.jobs?.user_id === loggedInUserId);
                         
-                        historyList.innerHTML = (filtered.length === 0) ? '<p style="text-align:center;color:#666;font-style:italic;">No applications received on your listings yet.</p>' :
+                        historyList.innerHTML = (filtered.length === 0) ? '<p>No applications received yet.</p>' :
                             filtered.map(b => `
                                 <div class="history-item">
-                                    Applicant: <span style="color: #14a800; text-decoration: underline; cursor: pointer; font-weight: bold;" onclick="openPrioritizedProfileModal('${b.user_id}')">${escapeHTML(b.freelancer_email)}</span><br>
-                                    Bid $${b.bid_amount} on <em>"${escapeHTML(b.jobs?.title)}"</em><br>
+                                    <strong>${escapeHTML(b.freelancer_email)}</strong> bid $${b.bid_amount} on <em>"${escapeHTML(b.jobs?.title)}"</em><br>
                                     "${escapeHTML(b.proposal_text)}"<br>
                                     <div style="margin-top: 8px;">
                                         ${b.status === 'pending' ? `
                                             <button class="action-accept" onclick="updateBidStatusDirectly('${b.id}', 'accepted')">Accept</button>
                                             <button class="action-reject" onclick="updateBidStatusDirectly('${b.id}', 'rejected')">Reject</button>
-                                        ` : `
-                                            <span class="status-pill status-${b.status}">${b.status}</span>
-                                            ${b.status === 'accepted' ? `<button class="action-accept" style="margin-left: 8px; background: #6f42c1;" onclick="promptFeedbackModal('${b.user_id}', '${b.id}')">⭐ Rate Freelancer</button>` : ''}
-                                        `}
+                                        ` : `<span class="status-pill status-${b.status}">${b.status}</span>`}
                                     </div>
                                 </div>
                             `).join('');
@@ -632,77 +463,40 @@
             } catch (e) { console.error(e); }
         }
 
-        tabLeft.addEventListener('click', () => { activeHistoryTab = 'left'; tabLeft.classList.add('active'); tabRight.classList.remove('active'); fetchAndRenderHistory(); });
-        tabRight.addEventListener('click', () => { activeHistoryTab = 'right'; tabRight.classList.add('active'); tabLeft.classList.remove('active'); fetchAndRenderHistory(); });
-
-                // 5. BID CLOSURES: ACCEPT, REJECT, AND EVALUATION MANAGERS
         window.updateBidStatusDirectly = async function(bidId, statusValue) {
-            const actionPrompt = statusValue === 'accepted' ? 'ACCEPT this application' : 'REJECT this application';
-            const userConfirmed = confirm(`Are you sure you want to ${actionPrompt}? This updates the database state rows instantly.`);
-            if (!userConfirmed) return;
+            const actionText = statusValue === 'accepted' ? 'ACCEPT this proposal' : 'REJECT this application';
+            if (!confirm(`Are you sure you want to ${actionText}?`)) return;
 
             try {
-                const { error } = await dbClient
-                    .from('bids')
-                    .update({ status: statusValue })
-                    .eq('id', bidId);
-
-                if (error) throw error;
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bids?id=eq.${bidId}`, {
+                    method: 'PATCH',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: statusValue })
+                });
+                if(!response.ok) throw new Error("Status patch failed");
                 fetchAndRenderHistory(); 
             } catch (e) { alert(e.message); }
         };
 
-        // SUBMIT RATING SCORINGS AND CONTRACT CLOSURE CRITERIA
-        window.promptFeedbackModal = async function(recipientId, bidId) {
-            const starsInput = prompt("Rate this freelancer from 1 to 5 stars:");
-            const ratingNumber = parseInt(starsInput);
-            if (isNaN(ratingNumber) || ratingNumber < 1 || ratingNumber > 5) { alert("Invalid entry score."); return; }
+        tabLeft.addEventListener('click', () => { activeHistoryTab = 'left'; tabLeft.classList.add('active'); tabRight.classList.remove('active'); fetchAndRenderHistory(); });
+        tabRight.addEventListener('click', () => { activeHistoryTab = 'right'; tabRight.classList.add('active'); tabLeft.classList.remove('active'); fetchAndRenderHistory(); });
 
-            const commentText = prompt("Leave a brief review comment tracking their work quality history:");
-            if (!commentText) return;
-
-            try {
-                const { error: reviewErr } = await dbClient
-                    .from('reviews')
-                    .insert([{ 
-                        author_id: loggedInUserId, 
-                        recipient_id: recipientId, 
-                        rating_score: ratingNumber, 
-                        comment_text: commentText 
-                    }]);
-
-                if (reviewErr) throw reviewErr;
-                alert("Feedback registered successfully!");
-                
-                // Automatically move closed rows off the dashboard grids
-                const { error: updateErr } = await dbClient
-                    .from('bids')
-                    .update({ status: 'rejected' })
-                    .eq('id', bidId);
-
-                if (updateErr) throw updateErr;
-                fetchAndRenderHistory();
-            } catch (e) { console.error(e); }
-        };
-
-        // 6. PROFILE PROFILE CONTROLLERS: DYNAMIC LIVE ROLE SWAPPING INTERFACE
+                // 4. LIVE LOGGED-IN ROLE SWAPPER
         roleSwapBtn.addEventListener('click', async () => {
             loggedInUserRole = (loggedInUserRole === 'client') ? 'freelancer' : 'client';
-            
             try {
-                const { error } = await dbClient
-                    .from('profiles')
-                    .update({ account_type: loggedInUserRole })
-                    .eq('id', loggedInUserId);
-
-                if (error) throw error;
+                await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${loggedInUserId}`, {
+                    method: 'PATCH',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account_type: loggedInUserRole })
+                });
                 updateDashboardLayoutView();
-            } catch (err) { alert(err.message); }
+            } catch (e) { console.error(e); }
         });
 
-                function updateDashboardLayoutView() {
+        function updateDashboardLayoutView() {
             userRoleBadge.textContent = loggedInUserRole;
-            userRoleBadge.style.color = loggedInUserRole === 'client' ? '#14a800' : '#007bff';
+            userRoleBadge.style.color = loggedInUserRole === 'client' ? '#10a37f' : '#007bff';
             activeHistoryTab = 'left';
             tabLeft.classList.add('active');
             tabRight.classList.remove('active');
@@ -715,7 +509,7 @@
             } else {
                 jobBox.classList.add('hidden');
                 applyBox.classList.add('hidden');
-                lockMessage.innerHTML = "ℹ️ Freelancer view active. Select any card listing on the board feed to review its details and apply.";
+                lockMessage.innerHTML = "ℹ️ Freelancer Dashboard active. Click any listing on the right to read parameters and apply.";
                 lockMessage.classList.remove('hidden');
             }
             applyFiltersAndRender();
@@ -727,7 +521,7 @@
             return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
-        // 7. USER AUTHENTICATION PIPELINE OPERATIONS MATRIX
+        // 5. USER AUTHORIZATION PIPELINE
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
                 authMode = 'login'; authTitle.textContent = "Account Log In"; authBtn.textContent = "Log In"; accountTypeContainer.classList.add('hidden');
@@ -736,56 +530,44 @@
             }
         });
 
-        authForm.addEventListener('submit', async (e) => {
+                authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            authStatus.style.color = "#333";
-            authStatus.textContent = "Syncing profiles...";
+            authStatus.style.color = "black";
+            authStatus.textContent = "Validating credentials with cloud server...";
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
+            const selectedType = document.querySelector('input[name="accountType"]:checked').value;
+            const targetEndpoint = authMode === 'signup' ? 'signup' : 'token?grant_type=password';
+
             try {
+                const response = await fetch(`${SUPABASE_URL}/auth/v1/${targetEndpoint}`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.msg || payload.message || "Authentication details invalid.");
+
+                currentUserSessionToken = payload.access_token;
+                loggedInUserId = payload.user.id;
+                loggedInUserEmail = payload.user.email;
+
                 if (authMode === 'signup') {
-                    const selectedType = document.querySelector('input[name="accountType"]:checked').value;
-                    const { data: signUpData, error: signUpErr } = await dbClient.auth.signUp({ email, password });
-                    if (signUpErr) throw signUpErr;
-
-                    currentUserSessionToken = signUpData.session?.access_token;
-                    loggedInUserId = signUpData.user?.id;
-                    loggedInUserEmail = signUpData.user?.email;
-
-                    const credentialPrompt = prompt("List your Professional Credentials / Accreditations:");
-                    const experiencePrompt = prompt("Provide a short summary bio of your professional experience background:");
-
-                    const { error: profileErr } = await dbClient
-                        .from('profiles')
-                        .insert([{ 
-                            id: loggedInUserId, 
-                            email: email, 
-                            account_type: selectedType, 
-                            credentials: credentialPrompt || "Verified Coach", 
-                            experience: experiencePrompt || "Bio details summary pending." 
-                        }]);
-
-                    if (profileErr) throw profileErr;
+                    await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+                        method: 'POST',
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: loggedInUserId, email: email, account_type: selectedType })
+                    });
                     loggedInUserRole = selectedType;
                 } else {
-                    const { data: logInData, error: logInErr } = await dbClient.auth.signInWithPassword({ email, password });
-                    if (logInErr) throw logInErr;
-
-                    currentUserSessionToken = logInData.session?.access_token;
-                    loggedInUserId = logInData.user?.id;
-                    loggedInUserEmail = logInData.user?.email;
-
-                    const { data: profileArray, error: profileFetchErr } = await dbClient
-                        .from('profiles')
-                        .select('account_type')
-                        .eq('id', loggedInUserId);
-
-                    if (profileFetchErr) throw profileFetchErr;
-                    loggedInUserRole = profileArray[0]?.account_type || 'freelancer';
+                    const roleResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${loggedInUserId}&select=account_type`, {
+                        method: 'GET',
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
+                    });
+                    const profileData = await roleResponse.json();
+                    loggedInUserRole = profileData?.account_type || 'freelancer';
                 }
 
-                // Mutate view bounds to deliver a non-disruptive logged-in profile dashboard menu
                 authBox.classList.add('hidden');
                 userDashboard.classList.remove('hidden');
                 historyBox.classList.remove('hidden');
@@ -794,50 +576,43 @@
                 updateDashboardLayoutView();
                 authStatus.textContent = "";
 
-            } catch (error) { 
-                authStatus.style.color = "#ba1a1a"; 
-                authStatus.textContent = error.message; 
-            }
+            } catch (error) { authStatus.style.color = "red"; authStatus.textContent = error.message; }
         });        
 
-        logoutBtn.addEventListener('click', async () => {
-            await dbClient.auth.signOut();
+        logoutBtn.addEventListener('click', () => {
             currentUserSessionToken = null; loggedInUserId = null; loggedInUserEmail = null; loggedInUserRole = null; selectedJobId = null;
             authBox.classList.remove('hidden'); userDashboard.classList.add('hidden'); jobBox.classList.add('hidden'); applyBox.classList.add('hidden'); historyBox.classList.add('hidden');
             authForm.reset(); lockMessage.classList.remove('hidden'); lockMessage.innerHTML = `⚠️ Log in to unlock your dashboard choices. Click any active job on the right to view its details.`;
             applyFiltersAndRender();
         });        
 
-        // 8. JOB CREATION FORM ACTION HANDLER
         jobForm.addEventListener('submit', async (e) => {  
             e.preventDefault();  
-            formStatus.style.color = "#333";
-            formStatus.textContent = "Publishing row record...";  
+            formStatus.style.color = "black";
+            formStatus.textContent = "Publishing listing details to Supabase...";  
             const title = document.getElementById('title').value;   
             const description = document.getElementById('description').value;   
             const budget = parseInt(document.getElementById('budget').value);
             const category = document.getElementById('category').value;
 
             try {
-                const { error } = await dbClient
-                    .from('jobs')
-                    .insert([{ title, description, budget, category, user_id: loggedInUserId }]);
-
-                if (error) throw error;
-
-                formStatus.style.color = "#14a800"; 
-                formStatus.textContent = "Success! Listing is active on the feed board.";         
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, budget, category, user_id: loggedInUserId })
+                });
+                if(!response.ok) throw new Error("Row insertion rejected");
+                formStatus.style.color = "green"; formStatus.textContent = "Success! Your job listing is active.";         
                 jobForm.reset();
                 fetchAndRenderFeed();
                 fetchAndRenderHistory();
-            } catch (error) { 
-                formStatus.style.color = "#ba1a1a"; 
-                formStatus.textContent = error.message; 
-            }
+            } catch (error) { formStatus.style.color = "red"; formStatus.textContent = error.message; }
         });
 
-        // Run feed builder instantly when page loads to gather existing rows
         fetchAndRenderFeed();
+        
     </script>
-</body>
+        
+    </body>
+
 </html>
