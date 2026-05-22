@@ -193,25 +193,26 @@
         </div>
 
             <!-- RIGHT COLUMN: CONTROL HUB & FILTER FEED -->
-        <div id="feedBox" class="box">
-            <h2>Active Job Board</h2>
+            <div id="feedBox" class="box">
+                <h2>Active Job Board</h2>
+                
+                <!-- CRITICAL VERIFICATION: Ensure id="searchBar" and id="filterCategory" are exactly as shown below -->
+                <div class="search-controls" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="searchBar" placeholder="Search title or keywords...">
+                    <select id="filterCategory">
+                        <option value="ALL">All Categories</option>
+                        <option value="Sports">Sports Coaching</option>
+                        <option value="Gaming">Gaming / Esport</option>
+                        <option value="Chess">Chess Lessons</option>
+                        <option value="General">General Freelance</option>
+                    </select>
+                </div>
             
-            <!-- FIX: Paste this exact search-controls row right here inside your feedBox box -->
-            <div class="search-controls" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="searchBar" placeholder="Search title or keywords...">
-                <select id="filterCategory">
-                    <option value="ALL">All Categories</option>
-                    <option value="Sports">Sports Coaching</option>
-                    <option value="Gaming">Gaming / Esport</option>
-                    <option value="Chess">Chess Lessons</option>
-                    <option value="General">General Freelance</option>
-                </select>
+                <div id="feed" class="feed-container">
+                    <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
+                </div>
             </div>
-    
-            <div id="feed" class="feed-container">
-                <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
-            </div>
-        </div>
+
 
     </main>
 
@@ -321,13 +322,19 @@
             const searchBar = document.getElementById('searchBar');
             const filterCategory = document.getElementById('filterCategory');
 
-            // Secure placement for the search bar interactive listener triggers
+            // SAFETY ACCIDENT PROTECTION LAYER: Prevents script crashes if HTML inputs are rendering out of sync
             if (searchBar && filterCategory) {
+                searchBar.removeEventListener('input', applyFiltersAndRender); // Clean old references
+                filterCategory.removeEventListener('change', applyFiltersAndRender);
+                
                 searchBar.addEventListener('input', applyFiltersAndRender);
                 filterCategory.addEventListener('change', applyFiltersAndRender);
+            } else {
+                console.error("Layout Warning: 'searchBar' or 'filterCategory' HTML boxes could not be found in the DOM structure.");
             }
 
-                        // 1. FILTER HOOKS & ACTIVE BOARD GENERATOR
+
+            // 1. FILTER HOOKS & ACTIVE BOARD GENERATOR
             async function fetchAndRenderFeed() {
                 try {
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs?select=*&order=created_at.desc`, {
@@ -367,7 +374,7 @@
                 `).join('');
             }
     
-                        window.handleJobCardSelection = function(jobId, jobTitle) {
+            window.handleJobCardSelection = function(jobId, jobTitle) {
                 selectedJobId = jobId;
                 applyFiltersAndRender(); 
                 
@@ -411,7 +418,7 @@
                 } catch (err) { bidStatus.style.color = "red"; bidStatus.textContent = err.message; }
             });
     
-                        // 3. TRACKING DASHBOARD HISTORY LOGS MANAGER
+            // 3. TRACKING DASHBOARD HISTORY LOGS MANAGER
             async function fetchAndRenderHistory() {
                 if (!currentUserSessionToken) return;
                 try {
@@ -474,7 +481,7 @@
                 } catch (e) { console.error(e); }
             }
     
-                        window.updateBidStatusDirectly = async function(bidId, statusValue) {
+            window.updateBidStatusDirectly = async function(bidId, statusValue) {
                 const actionText = statusValue === 'accepted' ? 'ACCEPT this proposal' : 'REJECT this application';
                 if (!confirm(`Are you sure you want to ${actionText}?`)) return;
     
@@ -541,7 +548,7 @@
                 }
             });
     
-                        authForm.addEventListener('submit', async (e) => {
+            authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 authStatus.style.color = "black";
                 authStatus.textContent = "Validating credentials with cloud server...";
