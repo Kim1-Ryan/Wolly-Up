@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Freelance Marketplace</title>
     <style>
-        body { font-family: sans-serif; max-width: 1200px; margin: 40px auto; padding: 20px; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
+        /* BASE LAYOUT ENGINE */
+        body { font-family: sans-serif; max-width: 1150px; margin: 40px auto; padding: 20px; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
         h2 { text-align: center; margin-top: 0; color: #333; }
         .box { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
         input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
         
+        /* LAYOUT HOOK MODULE BUTTONS */
         button { background: #10a37f; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; font-size: 0.95rem; }
         button:hover { opacity: 0.9; }
         button.secondary { background: #666; margin-top: 5px; }
         button.role-swap-btn { background: #007bff; margin-bottom: 10px; font-size: 0.85rem; padding: 6px; }
-        button.tab-btn { background: #e0e0e0; color: #333; font-size: 0.85rem; padding: 6px 12px; width: auto; display: inline-block; margin-right: 5px; }
+        button.tab-btn { background: #e0e0e0; color: #333; font-size: 0.85rem; padding: 6px 12px; width: auto; display: inline-block; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; }
         button.tab-btn.active { background: #10a37f; color: white; }
         
+        /* INTERACTIVE CLOSURE CONTROL UTILITIES */
         button.action-accept { background: #28a745; width: auto; padding: 4px 10px; font-size: 0.8rem; margin-right: 5px; }
         button.action-reject { background: #dc3545; width: auto; padding: 4px 10px; font-size: 0.8rem; }
         .status-pill { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
@@ -30,21 +33,19 @@
         #status, #formStatus { margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
         .feed-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; max-height: 700px; overflow-y: auto; }
         
-        .job-card { border: 1px solid #eef0f2; background: #fafbfc; padding: 18px; border-radius: 6px; position: relative; cursor: pointer; transition: transform 0.2s; }
+        /* MARKETPLACE CARDS & DESIGN ELEMENT OVERLAYS */
+        .job-card { border: 1px solid #eef0f2; background: #fafbfc; padding: 18px; border-radius: 6px; position: relative; cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
         .job-card:hover { transform: translateY(-2px); border-color: #10a37f; }
         .job-card.selected { border: 2px solid #10a37f; background: #f4faf8; }
         .category-badge { position: absolute; top: 15px; right: 15px; background: #e2f0ed; color: #10a37f; padding: 3px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
         .job-card-budget { font-weight: bold; color: #222; font-size: 0.9rem; margin-top: 8px; }
         
-        .history-item { border-left: 3px solid #10a37f; background: #f8faf9; padding: 12px; margin-bottom: 10px; border-radius: 0 4px 4px 0; font-size: 0.85rem; }
+        .history-item { border-left: 3px solid #10a37f; background: #f8faf9; padding: 12px; margin-bottom: 10px; border-radius: 0 4px 4px 0; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .search-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .account-type-group { display: flex; gap: 15px; margin-bottom: 10px; justify-content: center; }
         .account-type-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        
-        .profile-view-block { background: #f1f3f5; padding: 12px; border-radius: 6px; font-size: 0.85rem; margin-top: 8px; border-left: 3px solid #007bff; }
-        .review-card { background: #fff; border: 1px solid #eee; padding: 8px; border-radius: 4px; margin-top: 5px; font-size: 0.8rem; }
-        .alert-banner { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
 
+        /* NATIVE FIREWALL STACKING MEDIA BREAKPOINTS RULES */
         @media (max-width: 768px) {
             body { grid-template-columns: 1fr; margin: 10px auto; padding: 10px; gap: 15px; }
             .search-controls { grid-template-columns: 1fr; }
@@ -53,7 +54,7 @@
 </head>
 <body>
 
-    <!-- LEFT COLUMN: PROFILES, SUBMISSIONS, & REVIEWS TOOLKITS -->
+    <!-- LEFT COLUMN: ACCESS TERMINALS, SUBMISSION CONSOLES & LOG REVIEWS -->
     <div>
         <div id="authBox" class="box">
             <h2 id="authTitle">Create Marketplace Account</h2>
@@ -79,27 +80,14 @@
             <div id="status"></div>
         </div>
 
-        <!-- DYNAMIC DASHBOARD PROFILE INTERACTION MODIFIER -->
         <div id="userDashboard" class="box hidden">
             <p>Welcome back, <span id="userEmail" style="font-weight: bold; color: #10a37f;"></span></p>
             <p style="font-size: 0.85rem; color: #666; margin-top: -10px;">Active Role: <span id="userRoleBadge" style="font-weight: bold; text-transform: uppercase;"></span></p>
-            
-            <div id="liveAlert" class="alert-banner hidden">🔔 Instant Alert: You received a new proposal tracking token!</div>
-
-            <!-- PROFILE CONFIGURATION MANAGER -->
-            <div style="background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; margin-bottom: 12px;">
-                <h4 style="margin: 0 0 8px 0; font-size: 0.85rem;">Update Public Profile Metadata:</h4>
-                <div class="form-group">
-                    <input type="text" id="profCredentials" placeholder="Credentials / Degrees (e.g. Master Tier, Certified Trainer)" style="font-size: 0.8rem; margin-bottom: 5px;">
-                    <textarea id="profExperience" placeholder="Outline your historic experience metrics..." rows="2" style="font-size: 0.8rem;"></textarea>
-                </div>
-                <button type="button" id="saveProfileBtn" style="font-size: 0.8rem; padding: 5px;">Save Profile Fields</button>
-            </div>
-
             <button id="roleSwapBtn" class="role-swap-btn">🔄 Switch to Opposite Role View</button>
             <button id="logoutBtn" class="secondary">Log Out</button>
         </div>    
 
+        <!-- WORKSPACE CARD MODULE: CLIENT SUBMISSIONS -->
         <div id="jobBox" class="box hidden">
             <h2>Post a Freelance Job</h2>
             <form id="jobForm">
@@ -129,12 +117,13 @@
             <div id="formStatus"></div>       
         </div>
 
+        <!-- WORKSPACE CARD MODULE: FREELANCER PITCH APPLICATIONS -->
         <div id="applyBox" class="box hidden">
             <h2>Apply for Position</h2>
             <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px;">Bidding on: <strong id="applyJobTitle" style="color: #10a37f;"></strong></p>
             <div class="form-group">
                 <label for="bidText">Your Proposal Offer</label>
-                <textarea id="bidText" placeholder="Outline your experience..." rows="3" required></textarea>
+                <textarea id="bidText" placeholder="Outline your specific coaching experience..." rows="3" required></textarea>
             </div>
             <div class="form-group">
                 <label for="bidAmount">Bid Quote (\$)</label>
@@ -144,6 +133,7 @@
             <div id="bidStatus" style="font-size: 0.85rem; margin-top: 8px; font-weight: bold; text-align: center;"></div>
         </div>
 
+        <!-- WORKSPACE CARD MODULE: RELATIONAL TRANSACTIONAL LOG HISTORY TRACK TRACKER -->
         <div id="historyBox" class="box hidden">
             <h2>Your Tracking History</h2>
             <div style="margin-bottom: 12px;">
@@ -155,6 +145,24 @@
 
         <div id="lockMessage" class="box" style="text-align: center; font-weight: bold; color: #c00;">
             ⚠️ Log in to unlock your dashboard choices. Click any active job on the right to view its details.
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: SEARCH CONTROL CENTER & REAL-TIME INTERACTIVE FEEDBOARD -->
+    <div id="feedBox" class="box">
+        <h2>Active Job Board</h2>
+        <div class="search-controls">
+            <input type="text" id="searchBar" placeholder="Search title or keywords...">
+            <select id="filterCategory">
+                <option value="ALL">All Categories</option>
+                <option value="Sports">Sports Coaching</option>
+                <option value="Gaming">Gaming / Esport</option>
+                <option value="Chess">Chess Lessons</option>
+                <option value="General">General Freelance</option>
+            </select>
+        </div>
+        <div id="feed" class="feed-container">
+            <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
         </div>
     </div>
 
