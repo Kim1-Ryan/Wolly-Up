@@ -3,175 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Freelance Marketplace</title>
+    <title>Freelance Marketplace Portal</title>
     <style>
-        /* BASE LAYOUT ENGINE */
-        body { font-family: sans-serif; max-width: 1150px; margin: 40px auto; padding: 20px; background: #f9f9f9; display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; }
-        h2 { text-align: center; margin-top: 0; color: #333; }
-        .box { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
-        input, textarea, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+        /* COLOR PALETTE & ROOT GLOBAL STYLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f7f9fa; color: #222; padding-top: 70px; }
         
-        /* LAYOUT HOOK MODULE BUTTONS */
-        button { background: #10a37f; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; border-radius: 4px; font-weight: bold; font-size: 0.95rem; }
-        button:hover { opacity: 0.9; }
-        button.secondary { background: #666; margin-top: 5px; }
-        button.role-swap-btn { background: #007bff; margin-bottom: 10px; font-size: 0.85rem; padding: 6px; }
-        button.tab-btn { background: #e0e0e0; color: #333; font-size: 0.85rem; padding: 6px 12px; width: auto; display: inline-block; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; }
-        button.tab-btn.active { background: #10a37f; color: white; }
+        /* FIXED TOP NAVIGATION BAR AREA */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: 65px; background: #ffffff; border-bottom: 1px solid #e4e6e6; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; z-index: 100; }
+        .logo { font-size: 1.25rem; font-weight: 700; color: #10a37f; text-decoration: none; }
+        .nav-profile-summary { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; color: #5e6d55; }
+        .mini-profile-trigger { background: none; border: 1px solid #10a37f; color: #10a37f; padding: 6px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+        .mini-profile-trigger:hover { background: #f4faf8; }
+        .logout-btn { background: none; border: none; color: #bc2222; font-size: 0.8rem; cursor: pointer; font-weight: 600; text-decoration: underline; margin-left: 8px; }
+
+        /* GRID PLATFORM CONTAINERS Layout */
+        .main-container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 30px; }
+        .column { display: flex; flex-direction: column; gap: 20px; }
+        .panel-box { background: #ffffff; border: 1px solid #e4e6e6; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        h2 { font-size: 1.3rem; margin-bottom: 16px; color: #131313; font-weight: 600; }
         
-        /* INTERACTIVE CLOSURE CONTROL UTILITIES */
-        button.action-accept { background: #28a745; width: auto; padding: 4px 10px; font-size: 0.8rem; margin-right: 5px; }
-        button.action-reject { background: #dc3545; width: auto; padding: 4px 10px; font-size: 0.8rem; }
-        .status-pill { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
-        .status-pending { background: #ffeeba; color: #856404; }
+        /* UNIVERSAL INTERACTION INPUT FIELD FORMS */
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #333; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #e4e6e6; border-radius: 8px; font-size: 0.9rem; background: #ffffff; color: #222; outline: none; }
+        input:focus, textarea:focus, select:focus { border-color: #10a37f; box-shadow: 0 0 0 2px rgba(16,163,127,0.1); }
+        
+        /* ACTION LAYOUT MODULE BUTTONS */
+        button.primary-action { background: #10a37f; color: #ffffff; border: none; padding: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.95rem; width: 100%; transition: background 0.2s; }
+        button.primary-action:hover { background: #0d8567; }
+        button.secondary-action { background: #e4e6e6; color: #333333; border: none; padding: 10px; font-weight: 600; border-radius: 8px; cursor: pointer; font-size: 0.9rem; width: 100%; margin-top: 8px; }
+        button.secondary-action:hover { background: #d5d7d7; }
+        .account-type-selection { display: flex; gap: 16px; justify-content: center; padding: 8px 0; }
+        .account-type-selection label { display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; }
+        
+        /* DYNAMIC APP UTILITIES & BADGES */
+        .hidden { display: none !important; }
+        .category-badge { display: inline-block; background: #e2f0ed; color: #10a37f; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; }
+        .budget-tag { font-weight: 700; color: #131313; font-size: 0.9rem; margin-top: 10px; }
+        .status-pill { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+        .status-pending { background: #fff3cd; color: #856404; }
         .status-accepted { background: #d4edda; color: #155724; }
         .status-rejected { background: #f8d7da; color: #721c24; }
 
-        .hidden { display: none; }
-        #status, #formStatus { margin-top: 10px; font-weight: bold; font-size: 0.9rem; }
-        .feed-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; max-height: 700px; overflow-y: auto; }
-        
-        /* MARKETPLACE CARDS & DESIGN ELEMENT OVERLAYS */
-        .job-card { border: 1px solid #eef0f2; background: #fafbfc; padding: 18px; border-radius: 6px; position: relative; cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
-        .job-card:hover { transform: translateY(-2px); border-color: #10a37f; }
-        .job-card.selected { border: 2px solid #10a37f; background: #f4faf8; }
-        .category-badge { position: absolute; top: 15px; right: 15px; background: #e2f0ed; color: #10a37f; padding: 3px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        .job-card-budget { font-weight: bold; color: #222; font-size: 0.9rem; margin-top: 8px; }
-        
-        .history-item { border-left: 3px solid #10a37f; background: #f8faf9; padding: 12px; margin-bottom: 10px; border-radius: 0 4px 4px 0; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        .search-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .account-type-group { display: flex; gap: 15px; margin-bottom: 10px; justify-content: center; }
-        .account-type-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        /* ACTIVE INTERACTIVE MARKETPLACE CARD GRID FEED */
+        .search-controls { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .job-card { border: 1px solid #e4e6e6; background: #ffffff; padding: 20px; border-radius: 10px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
+        .job-card:hover { border-color: #10a37f; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .job-card.selected { border: 2px solid #10a37f; background: #fdfefe; }
+        .job-card h3 { font-size: 1.1rem; color: #10a37f; margin-bottom: 6px; font-weight: 600; }
+        .job-card p { font-size: 0.88rem; color: #555; line-height: 1.4; }
+        .history-item { border-left: 3px solid #10a37f; background: #fafafa; padding: 12px; margin-bottom: 10px; border-radius: 0 6px 6px 0; font-size: 0.85rem; }
+        .tab-bar { display: flex; gap: 8px; border-bottom: 1px solid #e4e6e6; margin-bottom: 16px; padding-bottom: 8px; }
+        .tab-link { background: none; border: none; font-size: 0.85rem; color: #666; font-weight: 600; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+        .tab-link.active { background: #10a37f; color: #ffffff; }
 
-        /* NATIVE FIREWALL STACKING MEDIA BREAKPOINTS RULES */
-        @media (max-width: 768px) {
-            body { grid-template-columns: 1fr; margin: 10px auto; padding: 10px; gap: 15px; }
-            .search-controls { grid-template-columns: 1fr; }
+        /* ACTIONS ACTION ROW CONTROLS FOR BIDS RECEIVED */
+        .action-row-buttons { margin-top: 10px; display: flex; gap: 8px; }
+        .btn-mini-accept { background: #28a745; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        .btn-mini-reject { background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        .btn-mini-rate { background: #6f42c1; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+
+        /* PRIORITIZED CENTERED FULL MODAL SCREEN OVERLAY SYSTEM */
+        .modal-screen-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.45); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
+        .modal-body-box { background: #ffffff; border-radius: 14px; width: 100%; max-width: 520px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-close-trigger { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.4rem; color: #888; cursor: pointer; outline: none; }
+        .modal-close-trigger:hover { color: #333; }
+        .profile-line-item { font-size: 0.92rem; line-height: 1.5; color: #444; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f3f3; }
+        
+        /* RESPONSIVE DESIGN VARIATIONS */
+        @media (max-width: 820px) {
+            body { padding-top: 85px; }
+            .navbar { height: auto; padding: 12px 16px; flex-direction: column; gap: 10px; align-items: flex-start; }
+            .nav-profile-summary { width: 100%; justify-content: space-between; }
+            .main-container { grid-template-columns: 1fr; gap: 20px; }
         }
     </style>
 </head>
-<body>
 
-    <!-- LEFT COLUMN: ACCESS TERMINALS, SUBMISSION CONSOLES & LOG REVIEWS -->
-    <div>
-        <div id="authBox" class="box">
-            <h2 id="authTitle">Create Marketplace Account</h2>
-            <form id="authForm">
-                <div class="form-group" id="accountTypeContainer">
-                    <label style="text-align: center; margin-bottom: 8px;">Select Your Initial Role:</label>
-                    <div class="account-type-group">
-                        <label><input type="radio" name="accountType" value="client" checked> Post Jobs (Client)</label>
-                        <label><input type="radio" name="accountType" value="freelancer"> Apply for Jobs (Freelancer)</label>
+    <body>
+
+    <!-- SYSTEM GLOBAL NAVIGATION BAR -->
+    <nav class="navbar">
+        <a href="#" class="logo">WollyUp</a>
+        
+        <!-- LOGGED OUT SUB-VIEW STATE LAYOUT -->
+        <div id="navLoggedOutText" class="nav-profile-summary">
+            <span>Visitor Mode Portfolio</span>
+        </div>
+        
+        <!-- LOGGED IN MINIMAL SUB-VIEW STATE LAYOUT -->
+        <div id="navLoggedInSummary" class="nav-profile-summary hidden">
+            <span>User: <strong id="topBarUserEmail"></strong> (<span id="topBarUserRole" style="text-transform:uppercase; font-weight:700;"></span>)</span>
+            <button id="viewProfileModalBtn" class="mini-profile-trigger">💼 View/Edit Profile</button>
+            <button id="logoutBtn" class="logout-btn">Log Out</button>
+        </div>
+    </nav>
+
+    <!-- CONTENT LAYOUT SECTION CONTAINER GRID -->
+    <main class="main-container">
+        
+        <!-- LEFT CONTROL ACTION COLUMN -->
+        <div class="column">
+            
+            <!-- GATEWAY REGISTRATION & SESSION ACCELERATOR CARD -->
+            <div id="authBox" class="panel-box">
+                <h2 id="authTitle">Create Account</h2>
+                <form id="authForm">
+                    <div class="form-group" id="accountTypeContainer">
+                        <div class="account-type-selection">
+                            <label><input type="radio" name="accountType" value="client" checked> Client</label>
+                            <label><input type="radio" name="accountType" value="freelancer"> Freelancer</label>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" required minlength="6">
-                </div>
-                <button type="submit" id="authBtn">Sign Up</button>
-                <button type="button" id="toggleAuthBtn" class="secondary">Already have an account? Log In</button>
-            </form>
-            <div id="status"></div>
-        </div>
-
-        <div id="userDashboard" class="box hidden">
-            <p>Welcome back, <span id="userEmail" style="font-weight: bold; color: #10a37f;"></span></p>
-            <p style="font-size: 0.85rem; color: #666; margin-top: -10px;">Active Role: <span id="userRoleBadge" style="font-weight: bold; text-transform: uppercase;"></span></p>
-            <button id="roleSwapBtn" class="role-swap-btn">🔄 Switch to Opposite Role View</button>
-            <button id="logoutBtn" class="secondary">Log Out</button>
-        </div>    
-
-        <!-- WORKSPACE CARD MODULE: CLIENT SUBMISSIONS -->
-        <div id="jobBox" class="box hidden">
-            <h2>Post a Freelance Job</h2>
-            <form id="jobForm">
-                <div class="form-group">
-                    <label for="title">Job Title</label>
-                    <input type="text" id="title" required>
-                </div>
-                <div class="form-group">
-                    <label for="category">Job Category</label>
-                    <select id="category">
-                        <option value="Sports">Sports Coaching</option>
-                        <option value="Gaming">Gaming / Esport</option>
-                        <option value="Chess">Chess Lessons</option>
-                        <option value="General">General Freelance</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="budget">Budget (\$)</label>
-                    <input type="number" id="budget" required>
-                </div>
-                <button type="submit">Publish Job to Marketplace</button>
-            </form>
-            <div id="formStatus"></div>       
-        </div>
-
-        <!-- WORKSPACE CARD MODULE: FREELANCER PITCH APPLICATIONS -->
-        <div id="applyBox" class="box hidden">
-            <h2>Apply for Position</h2>
-            <p style="font-size: 0.9rem; color: #555; margin-bottom: 12px;">Bidding on: <strong id="applyJobTitle" style="color: #10a37f;"></strong></p>
-            <div class="form-group">
-                <label for="bidText">Your Proposal Offer</label>
-                <textarea id="bidText" placeholder="Outline your specific coaching experience..." rows="3" required></textarea>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required minlength="6">
+                    </div>
+                    <button type="submit" id="authBtn" class="primary-action">Sign Up</button>
+                    <button type="button" id="toggleAuthBtn" class="secondary-action">Already have an account? Log In</button>
+                </form>
+                <div id="status" style="text-align:center; font-size:0.85rem; margin-top:10px; font-weight:bold;"></div>
             </div>
-            <div class="form-group">
-                <label for="bidAmount">Bid Quote (\$)</label>
-                <input type="number" id="bidAmount" required>
+
+            <!-- JOB PUBLISHING CONSOLE PANEL Box -->
+            <div id="jobBox" class="panel-box hidden">
+                <h2>Post a Freelance Job</h2>
+                <form id="jobForm">
+                    <div class="form-group">
+                        <label for="title">Job Title</label>
+                        <input type="text" id="title" required placeholder="e.g. Chess Grandmaster Coach">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Job Category</label>
+                        <select id="category">
+                            <option value="Sports">Sports Coaching</option>
+                            <option value="Gaming">Gaming / Esport</option>
+                            <option value="Chess">Chess Lessons</option>
+                            <option value="General">General Freelance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Job Specifications</label>
+                        <textarea id="description" rows="3" required placeholder="Outline task goals..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="budget">Budget Payout (\$)</label>
+                        <input type="number" id="budget" required placeholder="Amount (\$)">
+                    </div>
+                    <button type="submit" class="primary-action">Publish Job opening</button>
+                </form>
+                <div id="formStatus" style="text-align:center; font-size:0.85rem; margin-top:10px; font-weight:bold;"></div>
             </div>
-            <button type="button" id="submitBidBtn">Submit Official Pitch</button>
-            <div id="bidStatus" style="font-size: 0.85rem; margin-top: 8px; font-weight: bold; text-align: center;"></div>
+
+            <!-- FREELANCER PROPOSAL SUBMISSION CONSOLE PANEL Box -->
+            <div id="applyBox" class="panel-box hidden">
+                <h2>Apply for Position</h2>
+                <p style="font-size:0.88rem; color:#444; margin-bottom:14px;">Bidding on: <strong id="applyJobTitle" style="color:#10a37f;"></strong></p>
+                <div class="form-group">
+                    <label for="bidText">Your Proposal Pitch</label>
+                    <textarea id="bidText" placeholder="Outline your background qualifications..." rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bidAmount">Bid Quote Payout (\$)</label>
+                    <input type="number" id="bidAmount" required placeholder="Amount (\$)">
+                </div>
+                <button type="button" id="submitBidBtn" class="primary-action">Submit Pitch Terms</button>
+                <div id="bidStatus" style="text-align:center; font-size:0.85rem; margin-top:10px; font-weight:bold;"></div>
+            </div>
+
+            <!-- INTEGRATED RELATIONAL TRANSACTION RECORD HISTORIES PANEL Box -->
+            <div id="historyBox" class="panel-box hidden">
+                <h2>Your Portfolio History</h2>
+                <div class="tab-bar">
+                    <button id="tabLeft" class="tab-link active">My Posts</button>
+                    <button id="tabRight" class="tab-link">Bids Received</button>
+                </div>
+                <div id="historyList">Syncing relational history tables...</div>
+            </div>
+
+            <!-- MINIMAL SYSTEM UNLOCK REMINDER PROMPT NOTICE CONTAINER -->
+            <div id="lockMessage" class="panel-box" style="text-align:center; color:#555; font-size:0.9rem;">
+                ℹ️ Log in to unlock your secure user features. Select any active job on the card list layout to read full profiles.
+            </div>
         </div>
 
-        <!-- WORKSPACE CARD MODULE: RELATIONAL TRANSACTIONAL LOG HISTORY TRACK TRACKER -->
-        <div id="historyBox" class="box hidden">
-            <h2>Your Tracking History</h2>
-            <div style="margin-bottom: 12px;">
-                <button id="tabLeft" class="tab-btn active">My Posts</button>
-                <button id="tabRight" class="tab-btn">Bids Received</button>
+        <!-- RIGHT DATA FEED HUB COLUMN -->
+        <div id="feedBox" class="panel-box">
+            <h2>Active Marketplace Jobs</h2>
+            <div class="search-controls">
+                <input type="text" id="searchBar" placeholder="Search keywords...">
+                <select id="filterCategory">
+                    <option value="ALL">All Categories</option>
+                    <option value="Sports">Sports Coaching</option>
+                    <option value="Gaming">Gaming / Esport</option>
+                    <option value="Chess">Chess Lessons</option>
+                    <option value="General">General Freelance</option>
+                </select>
             </div>
-            <div id="historyList">Syncing history logs...</div>
+            <div id="feed" class="feed-container">
+                <p style="color:#777; text-align:center; font-style:italic;">Syncing live workspace records...</p>
+            </div>
         </div>
+    </main>
 
-        <div id="lockMessage" class="box" style="text-align: center; font-weight: bold; color: #c00;">
-            ⚠️ Log in to unlock your dashboard choices. Click any active job on the right to view its details.
+    <!-- PRIORITIZED CENTERED FULL MODAL VIEW ENGINE PANEL GRID -->
+        <!-- This overlay viewport box completely layers the application interface, 
+         delivering a prioritized centered view for managing and inspecting bios -->
+    <div id="profileModal" class="modal-overlay hidden">
+        <div class="modal-window">
+            <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+            
+            <h2 id="modalProfileTitle" style="margin-top: 0; color: #14a800; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">User Profile Summary</h2>
+            
+            <!-- READ-ONLY BIO DISPLAY MODULE OVERLAY VIEW -->
+            <div id="modalViewSection">
+                <div class="profile-info-row">
+                    <strong>Credentials & Certifications:</strong>
+                    <p id="lblModalCredentials" style="margin: 5px 0 0 0; color: #333; font-style: italic;"></p>
+                </div>
+                <div class="profile-info-row" style="margin-top: 15px;">
+                    <strong>Experience Summary & Professional Background:</strong>
+                    <p id="lblModalExperience" style="margin: 5px 0 0 0; color: #555; line-height: 1.5;"></p>
+                </div>
+                <div class="profile-info-row" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <strong>Marketplace Reputation & Performance Metrics:</strong>
+                    <div id="lblModalRating" style="font-weight: bold; margin-top: 5px; font-size: 1.1rem; color: #222;">⭐ Unrated</div>
+                </div>
+                
+                <!-- DYNAMIC CLIENT AND FREELANCER FEEDBACK HISTORY LOG GRID -->
+                <div style="margin-top: 20px;">
+                    <h3 style="font-size: 1rem; color: #333; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">Historical Job Reviews & Feedback</h3>
+                    <div id="modalReviewsList" style="max-height: 200px; overflow-y: auto; padding-right: 5px;"></div>
+                </div>
+
+                <button type="button" id="btnEditProfileMode" class="secondary" style="margin-top: 20px; background: #007bff; color: white;">✏️ Edit My Profile Biography</button>
+            </div>
+
+            <!-- INTERACTIVE TRANSACTION EDIT FORM SUBMISSION SHEET (RESTRICTED TO OWNER ACCESS) -->
+            <div id="modalEditSection" class="hidden">
+                <form id="modalProfileForm">
+                    <div class="form-group">
+                        <label for="txtModalCredentials">Professional Credentials / Certifications (e.g., Grandmaster, PGA Coach)</label>
+                        <input type="text" id="txtModalCredentials" placeholder="Enter your credentials...">
+                    </div>
+                    <div class="form-group">
+                        <label for="txtModalExperience">Detailed Coaching Background / Professional History</label>
+                        <textarea id="txtModalExperience" rows="4" placeholder="Summarize your years of experience, expertise, and teaching background..."></textarea>
+                    </div>
+                    <button type="submit" style="background: #14a800;">💾 Save Bio Modifications</button>
+                    <button type="button" id="btnCancelEditMode" class="secondary" style="margin-top: 8px;">Cancel Changes</button>
+                </form>
+                <div id="modalProfileStatus" style="margin-top: 12px; font-weight: bold; text-align: center; font-size: 0.9rem;"></div>
+            </div>
         </div>
     </div>
 
-    <!-- RIGHT COLUMN: SEARCH CONTROL CENTER & REAL-TIME INTERACTIVE FEEDBOARD -->
-    <div id="feedBox" class="box">
-        <h2>Active Job Board</h2>
-        <div class="search-controls">
-            <input type="text" id="searchBar" placeholder="Search title or keywords...">
-            <select id="filterCategory">
-                <option value="ALL">All Categories</option>
-                <option value="Sports">Sports Coaching</option>
-                <option value="Gaming">Gaming / Esport</option>
-                <option value="Chess">Chess Lessons</option>
-                <option value="General">General Freelance</option>
-            </select>
-        </div>
-        <div id="feed" class="feed-container">
-            <p style="color: #888; text-align: center;">Syncing marketplace records...</p>
-        </div>
+    <!-- TERMINATING HOOKS FOR CORES PANEL VIEW GRIDS -->
     </div>
 
-    
-<script>
-    
-        const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
+        <!-- NATIVE DRIVER PIPELINES BUNDLE DELIVERY SOURCE -->
+    <!-- Utilizing the highly reliable cdnjs infrastructure mirror layer to safely bypass 
+         aggressive local network firewall/router blocks that crash jsdelivr networks -->
+    <script src="https://cloudflare.com"></script>
+
+    <script>
+        // GLOBAL APPIICATION STATE REFERENCE CONFIGURATIONS
+        const SUPABASE_URL = "https://supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
+        // Global memory context objects to track user tokens, roles, and UI selections
         let currentUserSessionToken = null;
         let loggedInUserId = null;
         let loggedInUserEmail = null;
@@ -179,20 +284,23 @@
         let cachedJobsList = [];      
         let selectedJobId = null;     
         let activeHistoryTab = 'left'; 
-
         let authMode = 'signup'; 
+
+        // DOM CORE LAYOUT ELEMENT REFERENCES MATRIX
         const authForm = document.getElementById('authForm');
         const authTitle = document.getElementById('authTitle');
         const authBtn = document.getElementById('authBtn');
         const toggleAuthBtn = document.getElementById('toggleAuthBtn');
         const accountTypeContainer = document.getElementById('accountTypeContainer');
         const authStatus = document.getElementById('status');
+        
         const authBox = document.getElementById('authBox');
         const userDashboard = document.getElementById('userDashboard');
         const userEmailSpan = document.getElementById('userEmail');
         const userRoleBadge = document.getElementById('userRoleBadge');
         const roleSwapBtn = document.getElementById('roleSwapBtn');
         const logoutBtn = document.getElementById('logoutBtn');    
+        
         const lockMessage = document.getElementById('lockMessage');
         const jobBox = document.getElementById('jobBox');
         const jobForm = document.getElementById('jobForm');
@@ -201,30 +309,61 @@
         const applyJobTitle = document.getElementById('applyJobTitle');
         const submitBidBtn = document.getElementById('submitBidBtn');
         const bidStatus = document.getElementById('bidStatus');
+        
         const historyBox = document.getElementById('historyBox');
         const historyList = document.getElementById('historyList');
         const tabLeft = document.getElementById('tabLeft');
         const tabRight = document.getElementById('tabRight');
+        
         const feedContainer = document.getElementById('feed');
         const searchBar = document.getElementById('searchBar');
         const filterCategory = document.getElementById('filterCategory');
 
-        // 1. FILTER HOOKS & ACTIVE BOARD GENERATOR
+        // MODAL PANEL ELEMENT TREE MAPPINGS
+        const profileModal = document.getElementById('profileModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalProfileTitle = document.getElementById('modalProfileTitle');
+        const modalViewSection = document.getElementById('modalViewSection');
+        const modalEditSection = document.getElementById('modalEditSection');
+        const btnEditProfileMode = document.getElementById('btnEditProfileMode');
+        const btnCancelEditMode = document.getElementById('btnCancelEditMode');
+        const modalProfileForm = document.getElementById('modalProfileForm');
+        const modalProfileStatus = document.getElementById('modalProfileStatus');
+
+        const lblModalCredentials = document.getElementById('lblModalCredentials');
+        const lblModalExperience = document.getElementById('lblModalExperience');
+        const lblModalRating = document.getElementById('lblModalRating');
+        const modalReviewsList = document.getElementById('modalReviewsList');
+        const txtModalCredentials = document.getElementById('txtModalCredentials');
+        const txtModalExperience = document.getElementById('txtModalExperience');
+
+        // COMPILATION WRAPPER SETUP FOR THE SAFE NATIVE DRIVER PIPELINE INTERFACE
+        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 1. DATA ACCESS LOGIC PIPELINES: SYNC MARKETPLACE FEED ROWS
         async function fetchAndRenderFeed() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs?select=*&order=created_at.desc`, {
-                    method: 'GET',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-                });
-                cachedJobsList = await response.json();
+                // Issue a secure query request for all columns from the public jobs table sorted by newest postings
+                const { data: jobs, error } = await dbClient
+                    .from('jobs')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                
+                // Cache the array records locally to enable instant keyword filtration loops without querying the database again
+                cachedJobsList = jobs || [];
                 applyFiltersAndRender();
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                feedContainer.innerHTML = `<p style="color: #ba1a1a; text-align: center; font-weight: bold;">Feed Generation Error: ${err.message}</p>`; 
+            }
         }
 
+        // KEYWORD AND CATEGORY FILTER COMPILATION ENGINE
         function applyFiltersAndRender() {
             const searchKeyword = searchBar.value.toLowerCase();
             const categorySelection = filterCategory.value;
 
+            // Loop through cached array tracking match strings
             const filteredJobs = cachedJobsList.filter(job => {
                 const matchesSearch = job.title.toLowerCase().includes(searchKeyword) || job.description.toLowerCase().includes(searchKeyword);
                 const matchesCategory = (categorySelection === 'ALL') || (job.category === categorySelection);
@@ -232,26 +371,30 @@
             });
 
             if (filteredJobs.length === 0) {
-                feedContainer.innerHTML = `<p style="color: #999; text-align: center; font-style: italic;">No matching job listings found.</p>`;
+                feedContainer.innerHTML = `<p style="color: #666; text-align: center; font-style: italic; padding: 20px;">No matching freelance listings found on the board right now.</p>`;
                 return;
             }
 
+            // Map row data matrices into highly interactive template layouts
             feedContainer.innerHTML = filteredJobs.map(job => `
                 <div class="job-card ${selectedJobId === job.id ? 'selected' : ''}" onclick="handleJobCardSelection('${job.id}', '${escapeHTML(job.title)}')">
                     <span class="category-badge">${escapeHTML(job.category || 'General')}</span>
                     <h3 class="job-card-title">${escapeHTML(job.title)}</h3>
-                    <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.4;">${escapeHTML(job.description)}</p>
+                    <p style="margin: 0; color: #555; font-size: 0.9rem; line-height: 1.45;">${escapeHTML(job.description)}</p>
                     <div class="job-card-budget">Est. Budget: $${job.budget}</div>
                 </div>
             `).join('');
         }
 
+        // Assign listener hooks directly to search control hub fields
         searchBar.addEventListener('input', applyFiltersAndRender);
         filterCategory.addEventListener('change', applyFiltersAndRender);
+                // 2. USER INTERACTION HOOKS: SELECTION AND OVERLAY VIEW CONTROLLERS
         window.handleJobCardSelection = function(jobId, jobTitle) {
             selectedJobId = jobId;
-            applyFiltersAndRender(); 
+            applyFiltersAndRender(); // Repaint selection highlight states instantly
             
+            // Adjust form visibility bounds depending on account configuration rules
             if (currentUserSessionToken && loggedInUserRole === 'freelancer') {
                 applyBox.classList.remove('hidden');
                 lockMessage.classList.add('hidden');
@@ -259,332 +402,442 @@
                 bidStatus.textContent = "";
             } else if (currentUserSessionToken && loggedInUserRole === 'client') {
                 applyBox.classList.add('hidden');
-                lockMessage.innerHTML = `ℹ️ You are logged in as a Client. Switch view to Freelancer to apply for positions.`;
+                lockMessage.innerHTML = `ℹ️ You are currently viewing the platform as a Client. Only Freelancers can submit proposal offers.`;
                 lockMessage.classList.remove('hidden');
             } else {
                 applyBox.classList.add('hidden');
-                lockMessage.innerHTML = `⚠️ <strong>Access Denied:</strong> Log in as a Freelancer to apply for <em>"${jobTitle}"</em>.`;
+                lockMessage.innerHTML = `⚠️ <strong>Access Denied:</strong> You must create a Freelancer account or log in to submit a pitch for <em>"${jobTitle}"</em>.`;
                 lockMessage.classList.remove('hidden');
             }
         };
 
-        // NEW PROFILE VIEWER ENGINE: Fetches user profiles, past ratings, and reviews
-        window.viewUserProfileCardDirectly = async function(userIdString) {
+        // PRIORITIZED CENTERED FULL MODAL PROFILE LOOKUP PIPELINE
+        // Triggers an unblocked query to build profile reviews, score calculations, and history logs
+        window.openPrioritizedProfileModal = async function(userIdString) {
+            modalProfileStatus.textContent = "";
+            modalReviewsList.innerHTML = `<p style="color: #666; font-style: italic;">Loading credentials log histories...</p>`;
+            
             try {
-                // Fetch profile metadata details
-                const profileResp = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userIdString}&select=*`, {
-                    method: 'GET',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken || SUPABASE_ANON_KEY}` }
-                });
-                const profileArray = await profileResp.json();
-                const profile = profileArray[0];
+                // Fetch profile metadata details row
+                const { data: profileArray, error: profileErr } = await dbClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userIdString);
 
+                if (profileErr) throw profileErr;
+                const profile = profileArray[0];
                 if (!profile) return;
 
-                // Fetch reviews linked to this specific user profile account
-                const reviewsResp = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userIdString}&select=*`, {
-                    method: 'GET',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken || SUPABASE_ANON_KEY}` }
-                });
-                const reviews = await reviewsResp.json();
+                // Fetch historic reputation feedback metrics
+                const { data: reviews, error: reviewsErr } = await dbClient
+                    .from('reviews')
+                    .select('*')
+                    .eq('recipient_id', userIdString);
 
+                if (reviewsErr) throw reviewsErr;
+
+                // Calculate global profile star metrics arrays
                 let totalStars = 0;
-                reviews.forEach(r => totalStars += (r.rating_score || 0));
+                reviews.forEach(r => totalStars += Number(r.rating_score || 0));
                 const averageRating = reviews.length > 0 ? (totalStars / reviews.length).toFixed(1) : "Unrated";
 
-                // Generate popup layer wrapper layout target elements
-                    alert(`
-                        User Profile: ${profile.email} (${profile.account_type.toUpperCase()})
-                        -----------------------------------------
-                        Credentials: ${profile.credentials || 'None uploaded yet.'}
-                        Experience: ${profile.experience || 'No description provided.'}
-                        Average Rating: ⭐ ${averageRating} / 5 (${reviews.length} reviews)
-                        
-                        Recent Feedback Log:
-                        ${reviews.length === 0 ? 'No feedback entries left yet.' : reviews.map(r => `• [⭐ ${r.rating_score}/5] "${r.comment_text}"`).join('\n')}
-                    `);
-                    
-                } catch (err) { console.error("Profile check failure:", err); }
-            };
-    
-            // 2. TRANSMIT FREELANCER BID OFFERS TO SQL
-            submitBidBtn.addEventListener('click', async () => {
-                const bidText = document.getElementById('bidText').value;
-                const bidAmount = parseInt(document.getElementById('bidAmount').value);
-                if(!bidText || !bidAmount || !selectedJobId) return;
-    
-                bidStatus.style.color = "black";
-                bidStatus.textContent = "Transmitting pitch...";
-    
-                try {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bids`, {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                        body: JSON.stringify({ job_id: selectedJobId, freelancer_email: loggedInUserEmail, proposal_text: bidText, bid_amount: bidAmount, user_id: loggedInUserId, status: 'pending' })
-                    });
-                    if (!response.ok) throw new Error("Write rejected");
-                    bidStatus.style.color = "green";
-                    bidStatus.textContent = "Application submitted successfully!";
-                    document.getElementById('bidText').value = '';
-                    document.getElementById('bidAmount').value = '';
-                    fetchAndRenderHistory();
-                } catch (err) { bidStatus.style.color = "red"; bidStatus.textContent = err.message; }
-            });
-    
-            // 3. TRACKING DASHBOARD HISTORY LOGS MANAGER WITH REVIEWS & CLOSURES
-            async function fetchAndRenderHistory() {
-                if (!currentUserSessionToken) return;
-                try {
-                    if (loggedInUserRole === 'freelancer') {
-                        tabLeft.textContent = "Positions Applied For";
-                        tabRight.textContent = "Active Quotes Given";
-    
-                        if (activeHistoryTab === 'left') {
-                            const resp = await fetch(`${SUPABASE_URL}/rest/v1/bids?user_id=eq.${loggedInUserId}&select=*,jobs(title,category)`, {
-                                method: 'GET',
-                                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
-                            });
-                            const data = await resp.json();
-                            historyList.innerHTML = (!data || data.length === 0) ? '<p>You have not applied to any jobs yet.</p>' :
-                                data.map(b => `
-                                    <div class="history-item">
-                                        Applied to <strong>${escapeHTML(b.jobs?.title)}</strong><br>
-                                        Quote: $${b.bid_amount} - "${escapeHTML(b.proposal_text)}"<br>
-                                        <span class="status-pill status-${b.status || 'pending'}">${b.status || 'pending'}</span>
-                                    </div>
-                                `).join('');
-                        } else {
-                            historyList.innerHTML = '<p>No custom billing offer tokens pending at this stage.</p>';
-                        }
-                    } else {
-                        tabLeft.textContent = "My Posted Listings";
-                        tabRight.textContent = "Applications Received";
-    
-                        if (activeHistoryTab === 'left') {
-                            const resp = await fetch(`${SUPABASE_URL}/rest/v1/jobs?user_id=eq.${loggedInUserId}&select=*`, {
-                                method: 'GET',
-                                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
-                            });
-                            const data = await resp.json();
-                            historyList.innerHTML = (!data || data.length === 0) ? '<p>You have not published any listings yet.</p>' :
-                                data.map(j => `<div class="history-item">Listed: <strong>${escapeHTML(j.title)}</strong> [${escapeHTML(j.category)}] - Budget: $${j.budget}</div>`).join('');
-                        } else {
-                            const resp = await fetch(`${SUPABASE_URL}/rest/v1/bids?select=*,jobs!inner(title,user_id)`, {
-                                method: 'GET',
-                                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
-                            });
-                            const data = await resp.json();
-                            const filtered = data.filter(b => b.jobs?.user_id === loggedInUserId);
-                            
-                            historyList.innerHTML = (filtered.length === 0) ? '<p>No applications received yet.</p>' :
-                                filtered.map(b => `
-                                    <div class="history-item">
-                                        <span style="color: blue; text-decoration: underline; cursor: pointer;" onclick="viewUserProfileCardDirectly('${b.user_id}')"><strong>${escapeHTML(b.freelancer_email)}</strong></span> bid $${b.bid_amount} on <em>"${escapeHTML(b.jobs?.title)}"</em><br>
-                                        "${escapeHTML(b.proposal_text)}"<br>
-                                        <div style="margin-top: 8px;">
-                                            ${b.status === 'pending' ? `
-                                                <button class="action-accept" onclick="updateBidStatusDirectly('${b.id}', 'accepted')">Accept</button>
-                                                <button class="action-reject" onclick="updateBidStatusDirectly('${b.id}', 'rejected')">Reject</button>
-                                            ` : `
-                                                <span class="status-pill status-${b.status}">${b.status}</span>
-                                                ${b.status === 'accepted' ? `<button class="action-accept" style="margin-left: 10px; background: #6f42c1;" onclick="promptFeedbackModal('${b.user_id}', '${b.id}')">⭐ Rate Freelancer</button>` : ''}
-                                            `}
-                                        </div>
-                                    </div>
-                                `).join('');
-                        }
-                    }
-                } catch (e) { console.error(e); }
-            }
-    
-            // CLIENT CONTRACT ACTION CLOSURES WITH CLEANER POPUP CONFIRMATIONS
-            window.updateBidStatusDirectly = async function(bidId, statusValue) {
-                // 1. Trigger a clean browser confirmation popup message box
-                const actionText = statusValue === 'accepted' ? 'ACCEPT this application proposal' : 'REJECT this freelancer application';
-                const userConfirmed = confirm(`Are you absolutely sure you want to ${actionText}? This action will update the live board records instantly.`);
-                
-                // If the client clicks "Cancel", stop the execution frame immediately
-                if (!userConfirmed) return;
-    
-                try {
-                    // 2. Transmit the patch payload update directly to your Supabase PostgreSQL table rows
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/bids?id=eq.${bidId}`, {
-                        method: 'PATCH',
-                        headers: { 
-                            'apikey': SUPABASE_ANON_KEY, 
-                            'Authorization': `Bearer ${currentUserSessionToken}`, 
-                            'Content-Type': 'application/json' 
-                        },
-                        body: JSON.stringify({ status: statusValue })
-                    });
-                    
-                    if (!response.ok) throw new Error("Database network transmission status update failed");
-                    
-                    // 3. Repaint the tracking history logs layout view instantly to show updated status pills
-                    fetchAndRenderHistory(); 
-                    
-                } catch (e) { 
-                    alert(`Error syncing records: ${e.message}`); 
-                }
-            };
-    
-            // RATING INPUT CAPTURE MODAL LOOP
-            window.promptFeedbackModal = async function(recipientId, bidId) {
-                const starsInput = prompt("Enter a rating score from 1 to 5 stars:");
-                const ratingNumber = parseInt(starsInput);
-                if(isNaN(ratingNumber) || ratingNumber < 1 || ratingNumber > 5) { alert("Invalid selection rating."); return; }
-    
-                const commentText = prompt("Leave a brief written review/comment for their work history log:");
-                if(!commentText) return;
-    
-                try {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/reviews`, {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ author_id: loggedInUserId, recipient_id: recipientId, rating_score: ratingNumber, comment_text: commentText })
-                    });
-                    if(response.ok) {
-                        alert("Feedback published successfully!");
-                        // Archive the row view status closure state to clean tabs
-                        await updateBidStatusDirectly(bidId, 'rejected'); 
-                    }
-                } catch(e) { console.error(e); }
-            };
-    
-            // 4. LIVE LOGGED-IN ROLE SWAPPER
-            roleSwapBtn.addEventListener('click', async () => {
-                loggedInUserRole = (loggedInUserRole === 'client') ? 'freelancer' : 'client';
-                
-                await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${loggedInUserId}`, {
-                    method: 'PATCH',
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ account_type: loggedInUserRole })
-                });
-    
-                updateDashboardLayoutView();
-            });
-    
-            function updateDashboardLayoutView() {
-                userRoleBadge.textContent = loggedInUserRole;
-                userRoleBadge.style.color = loggedInUserRole === 'client' ? '#10a37f' : '#007bff';
-                activeHistoryTab = 'left';
-                tabLeft.classList.add('active');
-                tabRight.classList.remove('active');
-                selectedJobId = null;
-    
-                if (loggedInUserRole === 'client') {
-                    jobBox.classList.remove('hidden');
-                    applyBox.classList.add('hidden');
-                    lockMessage.classList.add('hidden');
+                // Populate template nodes inside the prioritized centered overlay modal
+                modalProfileTitle.textContent = `Profile Sheet: ${escapeHTML(profile.email)}`;
+                lblModalCredentials.textContent = profile.credentials || "No certification credentials listed yet.";
+                lblModalExperience.textContent = profile.experience || "No background bio provided by the user yet.";
+                lblModalRating.innerHTML = averageRating !== "Unrated" ? `⭐ ${averageRating} / 5.0 (${reviews.length} reviews)` : `⭐ Unrated`;
+
+                // Render specific history review log nodes
+                if (!reviews || reviews.length === 0) {
+                    modalReviewsList.innerHTML = `<p style="color: #888; font-style: italic; text-align: center;">No contract feedback entries left for this account yet.</p>`;
                 } else {
-                    jobBox.classList.add('hidden');
-                    applyBox.classList.add('hidden');
-                    lockMessage.innerHTML = "ℹ️ Freelancer Dashboard active. Click any listing on the right to read parameters and apply.";
-                    lockMessage.classList.remove('hidden');
+                    modalReviewsList.innerHTML = reviews.map(r => `
+                        <div style="background: #f8faf9; border: 1px solid #e0e0e0; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
+                            <div style="font-weight: bold; color: #14a800; font-size: 0.85rem;">Rating Given: ⭐ ${r.rating_score} / 5</div>
+                            <p style="margin: 5px 0 0 0; color: #444; font-size: 0.85rem; line-height: 1.3;">"${escapeHTML(r.comment_text)}"</p>
+                        </div>
+                    `).join('');
                 }
-                applyFiltersAndRender();
-                fetchAndRenderHistory();
-            }
-    
-            function escapeHTML(str) {
-                if (!str) return '';
-                return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
-            }
-        // 5. USER AUTHORIZATION PIPELINE
-            toggleAuthBtn.addEventListener('click', () => {
-                if (authMode === 'signup') {
-                    authMode = 'login'; authTitle.textContent = "Account Log In"; authBtn.textContent = "Log In"; accountTypeContainer.classList.add('hidden');
+
+                // Restrict edit capabilities solely to the true account profile owner row
+                if (currentUserSessionToken && loggedInUserId === userIdString) {
+                    btnEditProfileMode.classList.remove('hidden');
+                    txtModalCredentials.value = profile.credentials || "";
+                    txtModalExperience.value = profile.experience || "";
                 } else {
-                    authMode = 'signup'; authTitle.textContent = "Create Marketplace Account"; authBtn.textContent = "Sign Up"; accountTypeContainer.classList.remove('hidden');
+                    btnEditProfileMode.classList.add('hidden');
                 }
-            });
-    
-            authForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                authStatus.style.color = "black";
-                authStatus.textContent = "Syncing profiles...";
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const selectedType = document.querySelector('input[name="accountType"]:checked').value;
-                const targetEndpoint = authMode === 'signup' ? 'signup' : 'token?grant_type=password';
-    
-                try {
-                    const response = await fetch(`${SUPABASE_URL}/auth/v1/${targetEndpoint}`, {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
-                    const payload = await response.json();
-                    if (!response.ok) throw new Error(payload.msg || payload.message || "Authentication details invalid.");
-    
-                    currentUserSessionToken = payload.access_token;
-                    loggedInUserId = payload.user.id;
-                    loggedInUserEmail = payload.user.email;
-    
-                    if (authMode === 'signup') {
-                        // Profile metadata initialization injector loop parameters
-                        const credentialInput = prompt("Enter your Professional Credentials / Certifications (e.g., Grandmaster, PGA Coach):");
-                        const experienceInput = prompt("Briefly list your years of experience or background summary:");
-    
-                        await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
-                            method: 'POST',
-                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: loggedInUserId, email: email, account_type: selectedType, credentials: credentialInput || 'Verified User', experience: experienceInput || 'Bio pending' })
-                        });
-                        loggedInUserRole = selectedType;
-                    } else {
-                        const roleResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${loggedInUserId}&select=account_type`, {
-                            method: 'GET',
-                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
-                        });
-                        const profileData = await roleResponse.json();
-                        loggedInUserRole = profileData[0]?.account_type || 'freelancer';
-                    }
-    
-                    authBox.classList.add('hidden');
-                    userDashboard.classList.remove('hidden');
-                    historyBox.classList.remove('hidden');
-                    userEmailSpan.textContent = loggedInUserEmail;
-                    
-                    updateDashboardLayoutView();
-                    authStatus.textContent = "";
-    
-                } catch (error) { authStatus.style.color = "red"; authStatus.textContent = error.message; }
-            });        
-    
-            logoutBtn.addEventListener('click', () => {
-                currentUserSessionToken = null; loggedInUserId = null; loggedInUserEmail = null; loggedInUserRole = null; selectedJobId = null;
-                authBox.classList.remove('hidden'); userDashboard.classList.add('hidden'); jobBox.classList.add('hidden'); applyBox.classList.add('hidden'); historyBox.classList.add('hidden');
-                authForm.reset(); lockMessage.classList.remove('hidden'); lockMessage.innerHTML = `⚠️ Log in to unlock your dashboard choices. Click any active job on the right to view its details.`;
-                applyFiltersAndRender();
-            });        
-    
-            jobForm.addEventListener('submit', async (e) => {  
-                e.preventDefault();  
-                formStatus.style.color = "black";
-                formStatus.textContent = "Publishing row data...";  
-                const title = document.getElementById('title').value;   
-                const description = document.getElementById('description').value;   
-                const budget = parseInt(document.getElementById('budget').value);
-                const category = document.getElementById('category').value;
-    
-                try {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, description, budget, category, user_id: loggedInUserId })
-                    });
-                    if(!response.ok) throw new Error("Write failed");
-                    formStatus.style.color = "green"; formStatus.textContent = "Success! Your listing is active.";         
-                    jobForm.reset();
-                    fetchAndRenderFeed();
-                    fetchAndRenderHistory();
-                } catch (error) { formStatus.style.color = "red"; formStatus.textContent = error.message; }
-            });
-    
-            fetchAndRenderFeed();
+
+                // Expose modal box elements and isolate visibility focuses
+                modalViewSection.classList.remove('hidden');
+                modalEditSection.classList.add('hidden');
+                profileModal.classList.remove('hidden');
+
+            } catch (err) { 
+                alert(`Profile Sync Failure: ${err.message}`); 
+            }
+        };
+
+                // MODAL DISPLAY OVERLAY INTERACTIVE BUTTON LISTENERS
+        closeModalBtn.addEventListener('click', () => { profileModal.classList.add('hidden'); });
         
+        btnEditProfileMode.addEventListener('click', () => {
+            modalViewSection.classList.add('hidden');
+            modalEditSection.classList.remove('hidden');
+        });
+        
+        btnCancelEditMode.addEventListener('click', () => {
+            modalViewSection.classList.remove('hidden');
+            modalEditSection.classList.add('hidden');
+        });
+
+        // SAVE PROFILE BIO MODIFICATIONS EVENT HANDLER
+        modalProfileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            modalProfileStatus.style.color = "#333";
+            modalProfileStatus.textContent = "Updating database profile record...";
+
+            const newCredentials = txtModalCredentials.value;
+            const newExperience = txtModalExperience.value;
+
+            try {
+                const { error } = await dbClient
+                    .from('profiles')
+                    .update({ credentials: newCredentials, experience: newExperience })
+                    .eq('id', loggedInUserId);
+
+                if (error) throw error;
+
+                modalProfileStatus.style.color = "#14a800";
+                modalProfileStatus.textContent = "Success! Biography log rewritten.";
+                
+                // Instantly sync layout views to reflect modifications
+                setTimeout(() => {
+                    openPrioritizedProfileModal(loggedInUserId);
+                }, 800);
+
+            } catch (err) {
+                modalProfileStatus.style.color = "#ba1a1a";
+                modalProfileStatus.textContent = `Update failed: ${err.message}`;
+            }
+        });
+
+        // 3. APPLICATION HANDLING: TRANSMIT FREELANCER PROPOSALS TO DATABASE
+        submitBidBtn.addEventListener('click', async () => {
+            const bidText = document.getElementById('bidText').value;
+            const bidAmount = parseInt(document.getElementById('bidAmount').value);
+            if (!bidText || !bidAmount || !selectedJobId) return;
+
+            bidStatus.style.color = "#333";
+            bidStatus.textContent = "Transmitting offer pitch...";
+
+            try {
+                const { error } = await dbClient
+                    .from('bids')
+                    .insert([{ 
+                        job_id: selectedJobId, 
+                        freelancer_email: loggedInUserEmail, 
+                        proposal_text: bidText, 
+                        bid_amount: bidAmount, 
+                        user_id: loggedInUserId, 
+                        status: 'pending' 
+                    }]);
+
+                if (error) throw error;
+
+                bidStatus.style.color = "#14a800";
+                bidStatus.textContent = "Success! Proposal published to client board.";
+                document.getElementById('bidText').value = '';
+                document.getElementById('bidAmount').value = '';
+                fetchAndRenderHistory();
+            } catch (err) { 
+                bidStatus.style.color = "#ba1a1a"; 
+                bidStatus.textContent = `Bidding error: ${err.message}`; 
+            }
+        });
+
+                // 4. TRANSACTION REPOSITORY TABLES: SYNCHRONIZE PERSONAL DASHBOARD GRIDS
+        async function fetchAndRenderHistory() {
+            if (!currentUserSessionToken) return;
+            try {
+                if (loggedInUserRole === 'freelancer') {
+                    tabLeft.textContent = "Positions Applied For";
+                    tabRight.textContent = "Active Quotes Given";
+
+                    if (activeHistoryTab === 'left') {
+                        // Query applications matching freelancer profile user ID string
+                        const { data, error } = await dbClient
+                            .from('bids')
+                            .select('*, jobs(title,category)')
+                            .eq('user_id', loggedInUserId);
+
+                        if (error) throw error;
+
+                        historyList.innerHTML = (!data || data.length === 0) ? '<p style="text-align:center;color:#666;font-style:italic;">You have not applied to any job slots yet.</p>' :
+                            data.map(b => `
+                                <div class="history-item">
+                                    Applied to <strong>${escapeHTML(b.jobs?.title)}</strong><br>
+                                    Quote: $${b.bid_amount} - "${escapeHTML(b.proposal_text)}"<br>
+                                    <span class="status-pill status-${b.status || 'pending'}">${b.status || 'pending'}</span>
+                                </div>
+                            `).join('');
+                    } else {
+                        historyList.innerHTML = '<p style="text-align:center;color:#666;font-style:italic;">No custom freelancer payment offer tokens pending.</p>';
+                    }
+                } else {
+                    tabLeft.textContent = "My Posted Listings";
+                    tabRight.textContent = "Applications Received";
+
+                    if (activeHistoryTab === 'left') {
+                        // Query job records created by this client user ID string
+                        const { data, error } = await dbClient
+                            .from('jobs')
+                            .select('*')
+                            .eq('user_id', loggedInUserId);
+
+                        if (error) throw error;
+
+                        historyList.innerHTML = (!data || data.length === 0) ? '<p style="text-align:center;color:#666;font-style:italic;">You have not published any job listings yet.</p>' :
+                            data.map(j => `<div class="history-item">Listed: <strong>${escapeHTML(j.title)}</strong> [${escapeHTML(j.category)}] - Budget: $${j.budget}</div>`).join('');
+                    } else {
+                        // Query applications received on the client's postings
+                        const { data, error } = await dbClient
+                            .from('bids')
+                            .select('*, jobs!inner(title,user_id)');
+
+                        if (error) throw error;
+
+                        // Filter values locally to match client profile user ID string references
+                        const filtered = data.filter(b => b.jobs?.user_id === loggedInUserId);
+                        
+                        historyList.innerHTML = (filtered.length === 0) ? '<p style="text-align:center;color:#666;font-style:italic;">No applications received on your listings yet.</p>' :
+                            filtered.map(b => `
+                                <div class="history-item">
+                                    Applicant: <span style="color: #14a800; text-decoration: underline; cursor: pointer; font-weight: bold;" onclick="openPrioritizedProfileModal('${b.user_id}')">${escapeHTML(b.freelancer_email)}</span><br>
+                                    Bid $${b.bid_amount} on <em>"${escapeHTML(b.jobs?.title)}"</em><br>
+                                    "${escapeHTML(b.proposal_text)}"<br>
+                                    <div style="margin-top: 8px;">
+                                        ${b.status === 'pending' ? `
+                                            <button class="action-accept" onclick="updateBidStatusDirectly('${b.id}', 'accepted')">Accept</button>
+                                            <button class="action-reject" onclick="updateBidStatusDirectly('${b.id}', 'rejected')">Reject</button>
+                                        ` : `
+                                            <span class="status-pill status-${b.status}">${b.status}</span>
+                                            ${b.status === 'accepted' ? `<button class="action-accept" style="margin-left: 8px; background: #6f42c1;" onclick="promptFeedbackModal('${b.user_id}', '${b.id}')">⭐ Rate Freelancer</button>` : ''}
+                                        `}
+                                    </div>
+                                </div>
+                            `).join('');
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        tabLeft.addEventListener('click', () => { activeHistoryTab = 'left'; tabLeft.classList.add('active'); tabRight.classList.remove('active'); fetchAndRenderHistory(); });
+        tabRight.addEventListener('click', () => { activeHistoryTab = 'right'; tabRight.classList.add('active'); tabLeft.classList.remove('active'); fetchAndRenderHistory(); });
+
+                // 5. BID CLOSURES: ACCEPT, REJECT, AND EVALUATION MANAGERS
+        window.updateBidStatusDirectly = async function(bidId, statusValue) {
+            const actionPrompt = statusValue === 'accepted' ? 'ACCEPT this application' : 'REJECT this application';
+            const userConfirmed = confirm(`Are you sure you want to ${actionPrompt}? This updates the database state rows instantly.`);
+            if (!userConfirmed) return;
+
+            try {
+                const { error } = await dbClient
+                    .from('bids')
+                    .update({ status: statusValue })
+                    .eq('id', bidId);
+
+                if (error) throw error;
+                fetchAndRenderHistory(); 
+            } catch (e) { alert(e.message); }
+        };
+
+        // SUBMIT RATING SCORINGS AND CONTRACT CLOSURE CRITERIA
+        window.promptFeedbackModal = async function(recipientId, bidId) {
+            const starsInput = prompt("Rate this freelancer from 1 to 5 stars:");
+            const ratingNumber = parseInt(starsInput);
+            if (isNaN(ratingNumber) || ratingNumber < 1 || ratingNumber > 5) { alert("Invalid entry score."); return; }
+
+            const commentText = prompt("Leave a brief review comment tracking their work quality history:");
+            if (!commentText) return;
+
+            try {
+                const { error: reviewErr } = await dbClient
+                    .from('reviews')
+                    .insert([{ 
+                        author_id: loggedInUserId, 
+                        recipient_id: recipientId, 
+                        rating_score: ratingNumber, 
+                        comment_text: commentText 
+                    }]);
+
+                if (reviewErr) throw reviewErr;
+                alert("Feedback registered successfully!");
+                
+                // Automatically move closed rows off the dashboard grids
+                const { error: updateErr } = await dbClient
+                    .from('bids')
+                    .update({ status: 'rejected' })
+                    .eq('id', bidId);
+
+                if (updateErr) throw updateErr;
+                fetchAndRenderHistory();
+            } catch (e) { console.error(e); }
+        };
+
+        // 6. PROFILE PROFILE CONTROLLERS: DYNAMIC LIVE ROLE SWAPPING INTERFACE
+        roleSwapBtn.addEventListener('click', async () => {
+            loggedInUserRole = (loggedInUserRole === 'client') ? 'freelancer' : 'client';
+            
+            try {
+                const { error } = await dbClient
+                    .from('profiles')
+                    .update({ account_type: loggedInUserRole })
+                    .eq('id', loggedInUserId);
+
+                if (error) throw error;
+                updateDashboardLayoutView();
+            } catch (err) { alert(err.message); }
+        });
+
+                function updateDashboardLayoutView() {
+            userRoleBadge.textContent = loggedInUserRole;
+            userRoleBadge.style.color = loggedInUserRole === 'client' ? '#14a800' : '#007bff';
+            activeHistoryTab = 'left';
+            tabLeft.classList.add('active');
+            tabRight.classList.remove('active');
+            selectedJobId = null;
+
+            if (loggedInUserRole === 'client') {
+                jobBox.classList.remove('hidden');
+                applyBox.classList.add('hidden');
+                lockMessage.classList.add('hidden');
+            } else {
+                jobBox.classList.add('hidden');
+                applyBox.classList.add('hidden');
+                lockMessage.innerHTML = "ℹ️ Freelancer view active. Select any card listing on the board feed to review its details and apply.";
+                lockMessage.classList.remove('hidden');
+            }
+            applyFiltersAndRender();
+            fetchAndRenderHistory();
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+
+        // 7. USER AUTHENTICATION PIPELINE OPERATIONS MATRIX
+        toggleAuthBtn.addEventListener('click', () => {
+            if (authMode === 'signup') {
+                authMode = 'login'; authTitle.textContent = "Account Log In"; authBtn.textContent = "Log In"; accountTypeContainer.classList.add('hidden');
+            } else {
+                authMode = 'signup'; authTitle.textContent = "Create Marketplace Account"; authBtn.textContent = "Sign Up"; accountTypeContainer.classList.remove('hidden');
+            }
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authStatus.style.color = "#333";
+            authStatus.textContent = "Syncing profiles...";
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                if (authMode === 'signup') {
+                    const selectedType = document.querySelector('input[name="accountType"]:checked').value;
+                    const { data: signUpData, error: signUpErr } = await dbClient.auth.signUp({ email, password });
+                    if (signUpErr) throw signUpErr;
+
+                    currentUserSessionToken = signUpData.session?.access_token;
+                    loggedInUserId = signUpData.user?.id;
+                    loggedInUserEmail = signUpData.user?.email;
+
+                    const credentialPrompt = prompt("List your Professional Credentials / Accreditations:");
+                    const experiencePrompt = prompt("Provide a short summary bio of your professional experience background:");
+
+                    const { error: profileErr } = await dbClient
+                        .from('profiles')
+                        .insert([{ 
+                            id: loggedInUserId, 
+                            email: email, 
+                            account_type: selectedType, 
+                            credentials: credentialPrompt || "Verified Coach", 
+                            experience: experiencePrompt || "Bio details summary pending." 
+                        }]);
+
+                    if (profileErr) throw profileErr;
+                    loggedInUserRole = selectedType;
+                } else {
+                    const { data: logInData, error: logInErr } = await dbClient.auth.signInWithPassword({ email, password });
+                    if (logInErr) throw logInErr;
+
+                    currentUserSessionToken = logInData.session?.access_token;
+                    loggedInUserId = logInData.user?.id;
+                    loggedInUserEmail = logInData.user?.email;
+
+                    const { data: profileArray, error: profileFetchErr } = await dbClient
+                        .from('profiles')
+                        .select('account_type')
+                        .eq('id', loggedInUserId);
+
+                    if (profileFetchErr) throw profileFetchErr;
+                    loggedInUserRole = profileArray[0]?.account_type || 'freelancer';
+                }
+
+                // Mutate view bounds to deliver a non-disruptive logged-in profile dashboard menu
+                authBox.classList.add('hidden');
+                userDashboard.classList.remove('hidden');
+                historyBox.classList.remove('hidden');
+                userEmailSpan.textContent = loggedInUserEmail;
+                
+                updateDashboardLayoutView();
+                authStatus.textContent = "";
+
+            } catch (error) { 
+                authStatus.style.color = "#ba1a1a"; 
+                authStatus.textContent = error.message; 
+            }
+        });        
+
+        logoutBtn.addEventListener('click', async () => {
+            await dbClient.auth.signOut();
+            currentUserSessionToken = null; loggedInUserId = null; loggedInUserEmail = null; loggedInUserRole = null; selectedJobId = null;
+            authBox.classList.remove('hidden'); userDashboard.classList.add('hidden'); jobBox.classList.add('hidden'); applyBox.classList.add('hidden'); historyBox.classList.add('hidden');
+            authForm.reset(); lockMessage.classList.remove('hidden'); lockMessage.innerHTML = `⚠️ Log in to unlock your dashboard choices. Click any active job on the right to view its details.`;
+            applyFiltersAndRender();
+        });        
+
+        // 8. JOB CREATION FORM ACTION HANDLER
+        jobForm.addEventListener('submit', async (e) => {  
+            e.preventDefault();  
+            formStatus.style.color = "#333";
+            formStatus.textContent = "Publishing row record...";  
+            const title = document.getElementById('title').value;   
+            const description = document.getElementById('description').value;   
+            const budget = parseInt(document.getElementById('budget').value);
+            const category = document.getElementById('category').value;
+
+            try {
+                const { error } = await dbClient
+                    .from('jobs')
+                    .insert([{ title, description, budget, category, user_id: loggedInUserId }]);
+
+                if (error) throw error;
+
+                formStatus.style.color = "#14a800"; 
+                formStatus.textContent = "Success! Listing is active on the feed board.";         
+                jobForm.reset();
+                fetchAndRenderFeed();
+                fetchAndRenderHistory();
+            } catch (error) { 
+                formStatus.style.color = "#ba1a1a"; 
+                formStatus.textContent = error.message; 
+            }
+        });
+
+        // Run feed builder instantly when page loads to gather existing rows
+        fetchAndRenderFeed();
     </script>
-    
-    </body>
+</body>
 </html>
