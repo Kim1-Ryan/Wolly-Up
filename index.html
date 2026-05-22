@@ -397,17 +397,35 @@
                 } catch (e) { console.error(e); }
             }
     
-            // CLIENT CONTRACT ACTION CLOSURES AND DATA INJECTORS
+            // CLIENT CONTRACT ACTION CLOSURES WITH CLEANER POPUP CONFIRMATIONS
             window.updateBidStatusDirectly = async function(bidId, statusValue) {
+                // 1. Trigger a clean browser confirmation popup message box
+                const actionText = statusValue === 'accepted' ? 'ACCEPT this application proposal' : 'REJECT this freelancer application';
+                const userConfirmed = confirm(`Are you absolutely sure you want to ${actionText}? This action will update the live board records instantly.`);
+                
+                // If the client clicks "Cancel", stop the execution frame immediately
+                if (!userConfirmed) return;
+    
                 try {
+                    // 2. Transmit the patch payload update directly to your Supabase PostgreSQL table rows
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/bids?id=eq.${bidId}`, {
                         method: 'PATCH',
-                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
+                        headers: { 
+                            'apikey': SUPABASE_ANON_KEY, 
+                            'Authorization': `Bearer ${currentUserSessionToken}`, 
+                            'Content-Type': 'application/json' 
+                        },
                         body: JSON.stringify({ status: statusValue })
                     });
-                    if(!response.ok) throw new Error("Status update failed");
+                    
+                    if (!response.ok) throw new Error("Database network transmission status update failed");
+                    
+                    // 3. Repaint the tracking history logs layout view instantly to show updated status pills
                     fetchAndRenderHistory(); 
-                } catch (e) { alert(e.message); }
+                    
+                } catch (e) { 
+                    alert(`Error syncing records: ${e.message}`); 
+                }
             };
     
             // RATING INPUT CAPTURE MODAL LOOP
