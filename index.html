@@ -467,11 +467,15 @@
             if (loggedInUserRole === 'client') {
                 jobBox.classList.remove('hidden');
                 applyBox.classList.add('hidden');
+                
+                // UPDATE: Completely hide the red lock message box since the client is logged in
                 lockMessage.classList.add('hidden');
             } else {
                 jobBox.classList.add('hidden');
                 applyBox.classList.add('hidden');
-                lockMessage.innerHTML = "ℹ️ Freelancer Dashboard active. Click any listing on the right to read parameters and apply.";
+                
+                // UPDATE: Update text message to fit active Freelancers, keeping it visible as a safe informational text banner
+                lockMessage.innerHTML = "ℹ️ Freelancer Dashboard active. Click any active job on the right to view details and apply.";
                 lockMessage.classList.remove('hidden');
             }
             applyFiltersAndRender();
