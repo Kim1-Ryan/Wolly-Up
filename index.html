@@ -478,12 +478,16 @@
             fetchAndRenderHistory();
         }
 
+        // FIXED SYNTAX: Properly escaped single quote notation
         function escapeHTML(str) {
             if (!str) return '';
             return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
-                // SAFETY EXISTENCE LISTENERS CONFIGURATION (Prevents "addEventListener on null" crash states)
+        // FIXED VARIABLE INJECTION: Creating the auth tracking variable right here resolves the crash
+        let authMode = 'signup';
+
+        // SAFETY EXISTENCE LISTENERS CONFIGURATION (Prevents "addEventListener on null" crash states)
         if (searchBar && filterCategory) {
             searchBar.addEventListener('input', applyFiltersAndRender);
             filterCategory.addEventListener('change', applyFiltersAndRender);
