@@ -2,13 +2,13 @@
 const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
-// Recover secure access data objects passed from the primary board workspace view via localStorage
+// Recover session data objects passed from the primary board workspace view via localStorage
 const sessionToken = localStorage.getItem('marketplace_token');
 const userId = localStorage.getItem('marketplace_userId');
 const userEmail = localStorage.getItem('marketplace_email');
 const userRole = localStorage.getItem('marketplace_role');
 
-// PORTAL GATEWAY PROTECTION LAYER: Instantly bounce log entries to login screens if state is empty
+// SAFETY GATEWAY FILTER: Bounce user to homepage if session cache keys are empty
 if (!sessionToken || !userId) {
     alert("Session data missing or expired. Re-routing to secure validation portal gateway.");
     window.location.href = "index.html";
@@ -24,19 +24,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileStatusMsg = document.getElementById('profileStatusMsg');
     const reviewsContainer = document.getElementById('profileReviewsContainer');
 
-    // Populate local profile card elements instantly on page render
+    // Populate profile card elements instantly on execution
     if (profViewEmail) profViewEmail.textContent = userEmail;
     if (profViewRole) profViewRole.textContent = userRole === 'client' ? 'Client (Employer)' : 'Freelancer (Coach)';
 
-        // BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
+    // 2. BACKEND CONNECTOR AND CLOUD FLOW RENDERERS
     async function fetchAndPopulateProfileData() {
         try {
-            // 1. Fetch profile data rows matching logged in User ID string token 
-            const profResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
+            // CACHE-BUSTER: Injects a randomized timestamp string to force a live database fetch query
+            const cacheBusterTs = new Date().getTime();
+
+            // Fetch profile data rows directly from the live cloud database, explicitly bypassing the browser cache
+            const profResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*&_ts=${cacheBusterTs}`, {
                 method: 'GET',
                 headers: { 
-                    'apikey': SUPABASE_ANON_KEY, // FIXED: Explicitly passes the project api key to clear 401 blocks
-                    'Authorization': `Bearer ${sessionToken}` 
+                    'apikey': SUPABASE_ANON_KEY, 
+                    'Authorization': `Bearer ${sessionToken}`,
+                    'Cache-Control': 'no-cache, no-store, must-revalidate', // Core cache killer headers
+                    'Pragma': 'no-cache'
                 }
             });
             
@@ -44,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const profData = await profResponse.json();
             
             if (profData && profData.length > 0) {
-                const targetProfile = profData[0]; // Target the first profile row object safely
+                const targetProfile = profData[0]; // Target the precise row object safely inside the array matrix
                 if (credentialsInput) credentialsInput.value = targetProfile.credentials || "";
                 if (experienceInput) experienceInput.value = targetProfile.experience || "";
             }
@@ -52,14 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Profile metadata lookup failed:", profErr);
         }
 
-        // 2. SELF-HEALING REVIEWS HOOK: Isolated to prevent bad requests from blocking form updates
+        // SELF-HEALING REVIEWS HOOK: Isolated to prevent bad requests from blocking form updates
         try {
-            const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}&select=*`, {
+            const cacheBusterTs = new Date().getTime();
+            const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}&select=*&_ts=${cacheBusterTs}`, {
                 method: 'GET',
                 headers: { 
-                    'apikey': SUPABASE_ANON_KEY, // FIXED: Explicitly passes the project api key to clear 401 blocks
+                    'apikey': SUPABASE_ANON_KEY, 
                     'Authorization': `Bearer ${sessionToken}`,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
                 }
             });
             
@@ -106,24 +113,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
     }
 
-
-        // 3. SECURE RE-WRITE PROFILE BIOGRAPHY RE-WRITE OPERATIONS
+    // 3. SECURE BIO DATA MODIFICATIONS CONSOLE PIPELINES
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (profileStatusMsg) {
                 profileStatusMsg.style.color = "black";
-                profileStatusMsg.textContent = "Writing parameters to Supabase Cloud infrastructure...";
+                profileStatusMsg.textContent = "Writing biography parameters to Supabase...";
             }
 
             try {
-                // Direct PATCH request passing the apikey, authorization tokens, and raw values
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
                     method: 'PATCH',
                     headers: { 
                         'apikey': SUPABASE_ANON_KEY, 
                         'Authorization': `Bearer ${sessionToken}`, 
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json' 
                     },
                     body: JSON.stringify({ 
                         credentials: credentialsInput.value.trim(), 
@@ -131,10 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                 });
 
-                if (!response.ok) {
-                    const errPayload = await response.json().catch(() => ({}));
-                    throw new Error(errPayload.message || `Database write error code ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`Write parameters rejected via server status ${response.status}`);
 
                 if (profileStatusMsg) {
                     profileStatusMsg.style.color = "#10a37f";
@@ -145,17 +147,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 if (profileStatusMsg) {
                     profileStatusMsg.style.color = "red";
-                    profileStatusMsg.textContent = `Save Failed: ${error.message}`;
+                    profileStatusMsg.textContent = `Sync Error: ${error.message}`;
                 }
             }
         });
     }
-
 
     function escapeHTML(str) {
         if (!str) return '';
         return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
     }
 
+    // Execute application script startup routine
     fetchAndPopulateProfileData();
 });
