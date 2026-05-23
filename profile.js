@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (profViewEmail) profViewEmail.textContent = userEmail;
     if (profViewRole) profViewRole.textContent = userRole === 'client' ? 'Client (Employer)' : 'Freelancer (Coach)';
 
-    // 2. BACKEND CONNECTOR AND CLOUD FLOW RENDERERS
+        // BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
     async function fetchAndPopulateProfileData() {
         try {
-            // Fetch profile data rows matching logged in User ID string token 
+            // 1. Fetch profile data rows matching logged in User ID string token 
             const profResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
                 method: 'GET',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${sessionToken}` }
@@ -44,15 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (experienceInput) experienceInput.value = targetProfile.experience || "";
             }
 
-            // CLEAN INLINE QUERY FORMAT: Strips out the breaking select parameters to pass PostgREST rules
-            const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}`, {
+            // 2. FIXED FETCH QUERY: Included the mandatory select parameter and content-type header properties
+            const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}&select=*`, {
                 method: 'GET',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${sessionToken}` }
+                headers: { 
+                    'apikey': SUPABASE_ANON_KEY, 
+                    'Authorization': `Bearer ${sessionToken}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
             });
             
-            // Check if server rejected the structural request parameters
+            // Safety structural check if server fails or table needs to initialize rows
             if (!revResponse.ok) {
-                console.warn(`Reviews API endpoint bypass context initialized. Server status: ${revResponse.status}`);
+                console.warn(`Reviews table log bypass active. Server status: ${revResponse.status}`);
                 if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
                 if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
                 return;
@@ -60,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reviewsList = await revResponse.json();
 
-            // ARRAY STRUCTURAL EVALUATION LAYER: Bypasses crash states completely if reviewsList compiles empty
+            // Safety check to verify if the return is a valid data array matrix
             if (!reviewsList || !Array.isArray(reviewsList) || reviewsList.length === 0) {
                 if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
                 if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
@@ -92,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Cloud synchronizer tracking error loop closure warning:", err);
         }
     }
+
 
     // 3. SECURE BIO DATA MODIFICATIONS CONSOLE PIPELINES
     if (profileEditForm) {
