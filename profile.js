@@ -1,5 +1,5 @@
 // CLOUD CONNECTION INITIALIZATION
-const SUPABASE_URL = "https://supabase.co"; 
+const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
 // Recover secure access data objects passed from the primary board workspace view via localStorage
