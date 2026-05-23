@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
     }
 
-    // 6. USER REGISTRATION & AUTHENTICATION HANDLERS
+        // 6. USER REGISTRATION & AUTHENTICATION HANDLERS
     if (toggleAuthBtn) {
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
@@ -309,11 +309,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // FULLY CONFIGURED AUTHENTICATION FORM SUBMIT PIPELINE
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (authStatus) { authStatus.style.color = "black"; authStatus.textContent = "Syncing profiles..."; }
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const selectedType = document.querySelector('input[name="accountType"]:checked').value;
             const targetEndpoint = authMode === 'signup' ? 'signup' : 'token?grant_type=password';
@@ -327,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payload = await response.json();
                 if (!response.ok) throw new Error(payload.msg || payload.message || "Authentication details invalid.");
 
+                // 1. CAPTURE FRESH AUTHENTICATION TOKENS FROM THE LIVE CLOUD RESPONSE
                 currentUserSessionToken = payload.access_token;
                 loggedInUserId = payload.user.id;
                 loggedInUserEmail = payload.user.email;
@@ -346,6 +348,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const profileData = await roleResponse.json();
                     loggedInUserRole = (profileData && profileData.length > 0) ? profileData[0].account_type : 'freelancer';
                 }
+
+                // 2. REFRESH LOCALSTORAGE STREAMS TO LINK PAGES WITHOUT TRIGGERING 401 ERRORS
+                localStorage.setItem('marketplace_token', currentUserSessionToken);
+                localStorage.setItem('marketplace_userId', loggedInUserId);
+                localStorage.setItem('marketplace_email', loggedInUserEmail);
+                localStorage.setItem('marketplace_role', loggedInUserRole);
 
                 if (authBox) authBox.classList.add('hidden');
                 if (userDashboard) userDashboard.classList.remove('hidden');
@@ -386,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFiltersAndRender();
         });
     }
+
 
     // 7. CLIENT JOB FORM CREATION
     if (jobForm) {
