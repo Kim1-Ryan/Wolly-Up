@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (profViewEmail) profViewEmail.textContent = userEmail;
     if (profViewRole) profViewRole.textContent = userRole === 'client' ? 'Client (Employer)' : 'Freelancer (Coach)';
 
-    // BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
+        // BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
     async function fetchAndPopulateProfileData() {
         try {
-            // Fetch profile data rows matching logged in User ID string token 
+            // 1. Fetch profile data rows matching logged in User ID string token 
             const profResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
                 method: 'GET',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${sessionToken}` }
@@ -39,27 +39,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const profData = await profResponse.json();
             
             if (profData && profData.length > 0) {
-                const targetProfile = profData[0]; // Extract row element from data array matrix
+                const targetProfile = profData[0]; // Extract the precise row object
                 if (credentialsInput) credentialsInput.value = targetProfile.credentials || "";
                 if (experienceInput) experienceInput.value = targetProfile.experience || "";
             }
 
-            // Fetch feedback reviews matching recipient account parameters
-            const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}&select=*`, {
+            // 2. FIXED RELATIONAL COUPLING PIPELINE: Fetch feedback reviews cleanly via independent queries
+            const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}`, {
                 method: 'GET',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${sessionToken}` }
             });
-            const reviewsList = await revResponse.json();
-
-            if (!reviewsList || reviewsList.length === 0) {
+            
+            // Safety structural evaluation check block
+            if (!revResponse.ok) {
+                console.warn(`Reviews logging table query bypass state active: Server code ${revResponse.status}`);
                 if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
                 if (profViewRating) profViewRating.textContent = "⭐ Unrated (New Account)";
                 return;
             }
 
-            // Iterate and map stars calculation parameters
+            const reviewsList = await revResponse.json();
+
+            // FIXED PROTECTION: Guaranteeing reviewsList compiles as an iterable data array matrix
+            if (!reviewsList || !Array.isArray(reviewsList) || reviewsList.length === 0) {
+                if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
+                if (profViewRating) profViewRating.textContent = "⭐ Unrated (New Account)";
+                return;
+            }
+
+            // Iterate and map stars calculation parameters safely
             let totalRatingScore = 0;
-            reviewsList.forEach(r => totalRatingScore += parseFloat(r.rating_score));
+            reviewsList.forEach(r => totalRatingScore += parseFloat(r.rating_score || 0));
             const scoreAverage = (totalRatingScore / reviewsList.length).toFixed(1);
             if (profViewRating) profViewRating.textContent = `⭐ ${scoreAverage} / 5.0 (${reviewsList.length} global entries)`;
 
@@ -68,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reviewsContainer.innerHTML = reviewsList.map(r => `
                     <div class="history-item" style="border-left: 4px solid #ffc107; background: #fffdf9;">
                         <div style="font-weight: bold; color: #ffc107; font-size: 0.95rem; margin-bottom: 4px;">
-                            ${'⭐'.repeat(Math.round(r.rating_score))} (${r.rating_score}/5)
+                            ${'⭐'.repeat(Math.round(r.rating_score || 5))} (${r.rating_score || 5}/5)
                         </div>
                         <div style="color: #444; font-style: italic; line-height:1.4;">"${escapeHTML(r.comment_text)}"</div>
                         <div style="font-size: 0.75rem; color: #888; margin-top: 6px; text-align: right;">
@@ -82,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Cloud synchronizer tracking error loop closure warning:", err);
         }
     }
+
 
     // SECURE DATA RE-WRITE ENGINE SUBMISSIONS
     if (profileEditForm) {
