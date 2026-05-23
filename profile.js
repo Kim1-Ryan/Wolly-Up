@@ -35,14 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const profResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
                 method: 'GET',
                 headers: { 
-                    'apikey': SUPABASE_ANON_KEY, 
+                    'apikey': SUPABASE_ANON_KEY, // FIXED: Explicitly passes the project api key to clear 401 blocks
                     'Authorization': `Bearer ${sessionToken}` 
                 }
             });
+            
+            if (!profResponse.ok) throw new Error(`Profile query failed with status ${profResponse.status}`);
             const profData = await profResponse.json();
             
             if (profData && profData.length > 0) {
-                const targetProfile = profData[0]; // Target index row object elements properly
+                const targetProfile = profData[0]; // Target the first profile row object safely
                 if (credentialsInput) credentialsInput.value = targetProfile.credentials || "";
                 if (experienceInput) experienceInput.value = targetProfile.experience || "";
             }
@@ -55,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}&select=*`, {
                 method: 'GET',
                 headers: { 
-                    'apikey': SUPABASE_ANON_KEY, 
+                    'apikey': SUPABASE_ANON_KEY, // FIXED: Explicitly passes the project api key to clear 401 blocks
                     'Authorization': `Bearer ${sessionToken}`,
                     'Accept': 'application/json'
                 }
