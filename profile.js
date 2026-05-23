@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (profViewEmail) profViewEmail.textContent = userEmail;
     if (profViewRole) profViewRole.textContent = userRole === 'client' ? 'Client (Employer)' : 'Freelancer (Coach)';
 
-    // 2. BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
+        // BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
     async function fetchAndPopulateProfileData() {
         try {
-            // Fetch profile data rows matching logged in User ID string token 
+            // 1. Fetch profile data rows matching logged in User ID string token 
             const profResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
                 method: 'GET',
                 headers: { 
@@ -41,14 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const profData = await profResponse.json();
             
-            // Fixed indexing lookup assignment target checks
             if (profData && profData.length > 0) {
                 const targetProfile = profData[0]; // Target index row object elements properly
                 if (credentialsInput) credentialsInput.value = targetProfile.credentials || "";
                 if (experienceInput) experienceInput.value = targetProfile.experience || "";
             }
+        } catch (profErr) {
+            console.error("Profile metadata lookup failed:", profErr);
+        }
 
-            // Fetch feedback reviews matching recipient account parameters
+        // 2. SELF-HEALING REVIEWS HOOK: Isolated to prevent bad requests from blocking form updates
+        try {
             const revResponse = await fetch(`${SUPABASE_URL}/rest/v1/reviews?recipient_id=eq.${userId}&select=*`, {
                 method: 'GET',
                 headers: { 
@@ -59,16 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             if (!revResponse.ok) {
-                if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
-                if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
+                console.warn(`Reviews server status returned code: ${revResponse.status}. Skipping matrix render.`);
+                setDefaultReviewsView();
                 return;
             }
 
             const reviewsList = await revResponse.json();
 
             if (!reviewsList || !Array.isArray(reviewsList) || reviewsList.length === 0) {
-                if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
-                if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
+                setDefaultReviewsView();
                 return;
             }
 
@@ -90,11 +92,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `).join('');
             }
-
-        } catch (err) {
-            console.error("Profile view sync error tracking: ", err);
+        } catch (revErr) {
+            console.warn("Reviews table connection decoupled safely.", revErr);
+            setDefaultReviewsView();
         }
     }
+
+    // Helper to keep dashboard clean when no reviews exist or table is unseeded
+    function setDefaultReviewsView() {
+        if (reviewsContainer) reviewsContainer.innerHTML = `<p style="color: #888; font-style: italic; text-align: center; padding: 15px;">No client references logged for this account yet.</p>`;
+        if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
+    }
+
 
     // 3. SECURE VERIFIED DATA RE-WRITE ENGINE SUBMISSIONS
     if (profileEditForm) {
