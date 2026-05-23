@@ -9,7 +9,7 @@ let loggedInUserEmail = null;
 let loggedInUserRole = null; 
 let cachedJobsList = [];      
 let selectedJobId = null;     
-let activeHistoryTab = 'left'; 
+let activeHistoryTab = 'left';
 
 // THE SAFETY WINDOW WRAPPER: Delays processing until full DOM tree elements paint
 document.addEventListener('DOMContentLoaded', () => {
@@ -44,7 +44,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchBar = document.getElementById('searchBar');
     const filterCategory = document.getElementById('filterCategory');
     const userProfileIcon = document.getElementById('userProfileIcon');
+    // =========================================================================
+    // 🔥 AUTOMATIC SESSION RECOVERY ENGINE (FIXES THE BACK-TO-FEED LOGOUT BUG)
+    // =========================================================================
+    function tryRestoreActiveSession() {
+        const savedToken = localStorage.getItem('marketplace_token');
+        const savedUserId = localStorage.getItem('marketplace_userId');
+        const savedEmail = localStorage.getItem('marketplace_email');
+        const savedRole = localStorage.getItem('marketplace_role');
 
+        if (savedToken && savedUserId && savedEmail) {
+            // Restore global memory states from local disk cache properties
+            currentUserSessionToken = savedToken;
+            loggedInUserId = savedUserId;
+            loggedInUserEmail = savedEmail;
+            loggedInUserRole = savedRole || 'freelancer';
+
+            // Mutate interface panel visibilities instantly to hide logging alerts
+            if (authBox) authBox.classList.add('hidden');
+            if (userDashboard) userDashboard.classList.remove('hidden');
+            if (historyBox) historyBox.classList.remove('hidden');
+            if (userProfileIcon) userProfileIcon.classList.remove('hidden');
+            if (userEmailSpan) userEmailSpan.textContent = loggedInUserEmail;
+
+            updateDashboardLayoutView();
+        }
+    }
     // 1. SECURE FEED QUERIES & REAL-TIME SEARCH INDEXERS
     async function fetchAndRenderFeed() {
         try {
@@ -59,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (feedContainer) feedContainer.innerHTML = `<p style="color: red; text-align: center;">Feed Connection Failed: ${err.message}</p>`;
         }
     }
-
     function applyFiltersAndRender() {
         if (!feedContainer) return;
         const searchKeyword = searchBar ? searchBar.value.toLowerCase() : '';
@@ -91,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. INTERACTIVE CARD CLICK SELECTION PIPELINES
     window.handleJobCardSelection = function(jobId, jobTitle) {
         selectedJobId = jobId;
-        applyFiltersAndRender(); // Update visual selection highlights
+        applyFiltersAndRender(); 
         
         if (currentUserSessionToken && loggedInUserRole === 'freelancer') {
             if (applyBox) applyBox.classList.remove('hidden');
@@ -112,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
-
     // 3. TRANSMIT FREELANCER PITCH APPLICATIONS TO THE CLOUD
     if (submitBidBtn) {
         submitBidBtn.addEventListener('click', async () => {
@@ -205,9 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 "${escapeHTML(b.proposal_text)}"<br>
                                 <div style="margin-top: 8px;">
                                     ${b.status === 'pending' ? `
-                                        <button class="action-accept" onclick="updateBidStatusDirectly('${b.id}', 'accepted')">Accept</button>
-                                        <button class="action-reject" onclick="updateBidStatusDirectly('${b.id}', 'rejected')">Reject</button>
-                                    ` : `<span class="status-pill status-${b.status}">${b.status}</span>`}
+                                        <button class="action-accept" onclick="updateBidStatusDirectly('\${b.id}', 'accepted')">Accept</button>
+                                        <button class="action-reject" onclick="updateBidStatusDirectly('\${b.id}', 'rejected')">Reject</button>
+                                    ` : `<span class="status-pill status-\({b.status}">\){b.status}</span>`}
                                 </div>
                             </div>
                         `).join('');
@@ -235,8 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tabLeft.addEventListener('click', () => { activeHistoryTab = 'left'; tabLeft.classList.add('active'); tabRight.classList.remove('active'); fetchAndRenderHistory(); });
         tabRight.addEventListener('click', () => { activeHistoryTab = 'right'; tabRight.classList.add('active'); tabLeft.classList.remove('active'); fetchAndRenderHistory(); });
     }
-
-    // CROSS-PAGE LINK DATA TRANSPORTATION INTERFACE: Pass credentials safely to userProfile.html
     if (userProfileIcon) {
         userProfileIcon.addEventListener('click', () => {
             if (!currentUserSessionToken) return;
@@ -247,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = "userProfile.html";
         });
     }
+
     // 5. LIVE LOGGED-IN ROLE SWAPPER
     if (roleSwapBtn) {
         roleSwapBtn.addEventListener('click', async () => {
@@ -257,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ account_type: loggedInUserRole })
                 });
+                localStorage.setItem('marketplace_role', loggedInUserRole); // Update token reference cache
                 updateDashboardLayoutView();
             } catch (e) { console.error(e); }
         });
@@ -292,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
     }
 
-        // 6. USER REGISTRATION & AUTHENTICATION HANDLERS
     if (toggleAuthBtn) {
         toggleAuthBtn.addEventListener('click', () => {
             if (authMode === 'signup') {
@@ -308,8 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // FULLY CONFIGURED AUTHENTICATION FORM SUBMIT PIPELINE
     if (authForm) {
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -328,7 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payload = await response.json();
                 if (!response.ok) throw new Error(payload.msg || payload.message || "Authentication details invalid.");
 
-                // 1. CAPTURE FRESH AUTHENTICATION TOKENS FROM THE LIVE CLOUD RESPONSE
                 currentUserSessionToken = payload.access_token;
                 loggedInUserId = payload.user.id;
                 loggedInUserEmail = payload.user.email;
@@ -346,10 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${currentUserSessionToken}` }
                     });
                     const profileData = await roleResponse.json();
-                    loggedInUserRole = (profileData && profileData.length > 0) ? profileData[0].account_type : 'freelancer';
+                    loggedInUserRole = (profileData && profileData.length > 0) ? profileData.account_type : 'freelancer';
                 }
 
-                // 2. REFRESH LOCALSTORAGE STREAMS TO LINK PAGES WITHOUT TRIGGERING 401 ERRORS
                 localStorage.setItem('marketplace_token', currentUserSessionToken);
                 localStorage.setItem('marketplace_userId', loggedInUserId);
                 localStorage.setItem('marketplace_email', loggedInUserEmail);
@@ -378,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (jobBox) jobBox.classList.add('hidden'); 
             if (applyBox) applyBox.classList.add('hidden'); 
             
-            // Clean up session trackers
             localStorage.removeItem('marketplace_token');
             localStorage.removeItem('marketplace_userId');
             localStorage.removeItem('marketplace_email');
@@ -395,8 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-    // 7. CLIENT JOB FORM CREATION
     if (jobForm) {
         jobForm.addEventListener('submit', async (e) => {  
             e.preventDefault();  
@@ -423,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Fire application loops on page compilation
+    // Fire application session check loop and feed parsing routines cleanly on load
+    tryRestoreActiveSession();
     fetchAndRenderFeed();
-});
+}); // CLOSES DOMCONTENTLOADED WRAPPER BLOCK SAFELY
