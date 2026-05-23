@@ -1,4 +1,4 @@
-// CLOUD CONNECTION INITIALIZATION
+// 1. CLOUD CONFIGURATION (REAL ENCRYPTED URL ENDPOINTS)
 const SUPABASE_URL = "https://brooyrbsllnlsqtgohtg.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_PZi69pAWccthnk2-owPv1Q_EQQlpEcD";
 
@@ -24,11 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileStatusMsg = document.getElementById('profileStatusMsg');
     const reviewsContainer = document.getElementById('profileReviewsContainer');
 
-    // 1. POPULATE LOCAL PROFILE DATA INSTANTLY
+    // POPULATE LOCAL PROFILE DATA INSTANTLY
     if (profViewEmail) profViewEmail.textContent = userEmail;
     if (profViewRole) profViewRole.textContent = userRole === 'client' ? 'Client (Employer)' : 'Freelancer (Coach)';
 
-    // 2. BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
+    // BACKEND CLOUD DIRECT FLOW RECORD CONSUMERS
     async function fetchAndPopulateProfileData() {
         try {
             // Fetch profile data rows matching logged in User ID string token 
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const profData = await profResponse.json();
             
             if (profData && profData.length > 0) {
-                const targetProfile = profData[0];
+                const targetProfile = profData[0]; // Extract row element from data array matrix
                 if (credentialsInput) credentialsInput.value = targetProfile.credentials || "";
                 if (experienceInput) experienceInput.value = targetProfile.experience || "";
             }
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 3. SECURE DATA RE-WRITE ENGINE SUBMISSIONS
+    // SECURE DATA RE-WRITE ENGINE SUBMISSIONS
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
