@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profViewRating) profViewRating.textContent = "⭐ Unrated (New User Profile)";
     }
 
-    // 3. SECURE BIO DATA MODIFICATIONS CONSOLE PIPELINES
+        // 3. SECURE BIO DATA MODIFICATIONS CONSOLE PIPELINES (UPDATED TO THE UPSERT FIX MODEL)
     if (profileEditForm) {
         profileEditForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -123,20 +123,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
-                    method: 'PATCH',
+                // FIXED FLOW: We send a POST request with an ON-CONFLICT UPSERT preference resolution header properties
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+                    method: 'POST',
                     headers: { 
                         'apikey': SUPABASE_ANON_KEY, 
                         'Authorization': `Bearer ${sessionToken}`, 
-                        'Content-Type': 'application/json' 
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge' // Tells Supabase: "If this userId row exists, overwrite it instantly!"
                     },
                     body: JSON.stringify({ 
+                        id: userId, // CRITICAL: Pass the primary key id so the database maps ownership matching parameters
+                        email: userEmail,
+                        account_type: userRole,
                         credentials: credentialsInput.value.trim(), 
                         experience: experienceInput.value.trim() 
                     })
                 });
 
-                if (!response.ok) throw new Error(`Write parameters rejected via server status ${response.status}`);
+                if (!response.ok) {
+                    const errPayload = await response.json().catch(() => ({}));
+                    throw new Error(errPayload.message || `Database write error code ${response.status}`);
+                }
 
                 if (profileStatusMsg) {
                     profileStatusMsg.style.color = "#10a37f";
@@ -147,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 if (profileStatusMsg) {
                     profileStatusMsg.style.color = "red";
-                    profileStatusMsg.textContent = `Sync Error: ${error.message}`;
+                    profileStatusMsg.textContent = `Save Failed: ${error.message}`;
                 }
             }
         });
