@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import BookingList from "./BookingList";
 import ProfileReviews from "./ProfileReviews";
 import InlineFeedback from "./InlineFeedback";
@@ -55,7 +56,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
       if (loading) return;
       loading = true;
       try {
-        const response = await fetch(`/api/coaches/${user.id}/availability`);
+        const response = await apiFetch(`/api/coaches/${user.id}/availability`);
         if (!response.ok) throw new Error('Availability unavailable');
         const dates = await response.json();
         if (!cancelled) setAvailability({ coachId: user.id, dates, status: 'ready' });
@@ -163,7 +164,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
       setFeedback("Your profile photo could not be read. Please choose another image.");
       return;
     }
-    const response = await fetch(`/api/profiles/${user.id}`, {
+    const response = await apiFetch(`/api/profiles/${user.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

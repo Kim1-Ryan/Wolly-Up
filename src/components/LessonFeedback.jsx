@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import { useEffect, useState } from "react";
 import "./LessonFeedback.css";
 
@@ -17,7 +18,7 @@ function LessonReview({ booking, session, index, userId, name, onChanged }) {
     e.preventDefault();if(busy)return;
     if(!completed||!rating){setError('Confirm completion and select a rating.');return;}
     setBusy(true);setError('');
-    try {const r=await fetch(`/api/bookings/${booking.id}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,slot,completed,rating:Number(rating),comment})});const data=await r.json();if(!r.ok)throw Error(data.error);onChanged(data);}catch(err){setError(err.message);}finally{setBusy(false);}
+    try {const r=await apiFetch(`/api/bookings/${booking.id}/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,slot,completed,rating:Number(rating),comment})});const data=await r.json();if(!r.ok)throw Error(data.error);onChanged(data);}catch(err){setError(err.message);}finally{setBusy(false);}
   }}>
     <div className="lesson-review-heading"><div><span className="lesson-review-eyebrow">Lesson {index+1} feedback</span><h4>How did your lesson go?</h4></div><span className="lesson-review-date">{new Date(`${session.date}T12:00:00`).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'})} · {session.time} SAST</span></div>
     <label className="lesson-review-confirm"><input type="checkbox" checked={completed} disabled={busy} onChange={e=>{setCompleted(e.target.checked);setError('');}}/><span>I confirm this lesson was completed</span></label>

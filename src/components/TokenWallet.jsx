@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import { useEffect, useRef, useState } from 'react';
 import './TokenWallet.css';
 
@@ -11,7 +12,7 @@ export default function TokenWallet({ user, onWalletChange }) {
     let cancelled=false;
     async function refresh() {
       try {
-        const response=await fetch('/api/tokens',{headers:{Authorization:`Bearer ${user.sessionToken}`}});
+        const response=await apiFetch('/api/tokens',{headers:{Authorization:`Bearer ${user.sessionToken}`}});
         const data=await response.json();if(!response.ok)throw new Error(data.error);
         if(!cancelled){setWallet(data);onWalletChange(data);setError('');}
       }catch(error){if(!cancelled)setError(error.message);}

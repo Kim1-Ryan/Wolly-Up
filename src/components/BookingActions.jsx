@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import { useState } from "react";
 import InlineFeedback from "./InlineFeedback";
 import "./BookingActions.css";
@@ -22,7 +23,7 @@ export default function BookingActions({ booking, userId, onChanged }) {
     }
     setBusy(true);setError("");setConfirmation("");
     try {
-      const response=await fetch(`/api/bookings/${booking.id}/change-request`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId,action,kind,reason,sessions})});
+      const response=await apiFetch(`/api/bookings/${booking.id}/change-request`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId,action,kind,reason,sessions})});
       const data=await response.json();if(!response.ok)throw Error(data.error || "Unable to update booking.");
       onChanged(data);setKind("");setReason("");
       setConfirmation(action==='request' ? `${kind==='cancel'?'Cancellation':'Edit'} request sent. Awaiting the other person's response.` : action==='accept'?'Request accepted. Booking updated.':'Request declined. Booking unchanged.');

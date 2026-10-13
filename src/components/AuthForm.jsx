@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import InlineFeedback from "./InlineFeedback";
 import React, { useState, useEffect } from "react";
 
@@ -61,7 +62,7 @@ function AuthForm({ onAuthSuccess }) {
         const url =
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
 
-        fetch(url)
+        apiFetch(url)
           .then((res) => res.json())
           .then((data) => {
             if (data && data.address) {
@@ -167,7 +168,7 @@ function AuthForm({ onAuthSuccess }) {
     }
 
     if (isLoginMode) {
-      const response = await fetch("/api/auth/login", {
+      const response = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, password: formData.password })
@@ -266,7 +267,7 @@ function AuthForm({ onAuthSuccess }) {
       profilePhotoConfirmed
     };
 
-    const response = await fetch("/api/auth/register", {
+    const response = await apiFetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(registrationData)

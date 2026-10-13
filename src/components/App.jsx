@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import IdentityVerification from "./IdentityVerification";
 import ProfileReviews from "./ProfileReviews";
 import LearnerRating from "./LearnerRating";
@@ -51,7 +52,7 @@ function App() {
       if(loading)return;
       loading=true;
       try {
-        const response=await fetch(`/api/listings?userId=${encodeURIComponent(currentUser.id)}`);
+        const response=await apiFetch(`/api/listings?userId=${encodeURIComponent(currentUser.id)}`);
         if(!response.ok)throw new Error('Unable to refresh listings.');
         const listings=await response.json();if(!cancelled)setPosts(listings);
       }catch(error){console.error(error.message);}finally{loading=false;}
@@ -71,7 +72,7 @@ function App() {
       loading = true;
       try {
         await Promise.all([...new Set([currentUser.id, selectedCoachForView?.id].filter(Boolean))].map(async id => {
-          const response = await fetch(`/api/profiles/${id}/ratings`);
+          const response = await apiFetch(`/api/profiles/${id}/ratings`);
           if (!response.ok) throw new Error('Unable to load profile ratings.');
           const ratings = await response.json();
           if (cancelled) return;
@@ -92,7 +93,7 @@ function App() {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/profiles?q=${encodeURIComponent(query)}&role=${currentUser?.role==='learner'?'coach':'learner'}`, { signal: controller.signal });
+        const response = await apiFetch(`/api/profiles?q=${encodeURIComponent(query)}&role=${currentUser?.role==='learner'?'coach':'learner'}`, { signal: controller.signal });
         const profiles = await response.json();
         if (!response.ok) throw new Error("Unable to search profiles.");
         if (!controller.signal.aborted) setProfileSearch({
@@ -115,7 +116,7 @@ function App() {
       if (loading) return;
       loading = true;
       try {
-        const response = await fetch(`/api/bookings?userId=${encodeURIComponent(currentUser.id)}`);
+        const response = await apiFetch(`/api/bookings?userId=${encodeURIComponent(currentUser.id)}`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Unable to load bookings.");
         if (!cancelled) setBookings(data);
@@ -142,7 +143,7 @@ function App() {
       loading = true;
       try {
         const values = await Promise.all(['/api/conversations', '/api/notifications'].map(async path => {
-          const response = await fetch(path + '?userId=' + encodeURIComponent(currentUser.id));
+          const response = await apiFetch(path + '?userId=' + encodeURIComponent(currentUser.id));
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || 'Unable to load your inbox.');
           return data;
@@ -163,7 +164,7 @@ function App() {
     if (!ids.length) return;
     ids.forEach(id => readingNotifications.current.add(id));
     try {
-      const response = await fetch('/api/notifications/read', {
+      const response = await apiFetch('/api/notifications/read', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, ids })
       });
@@ -229,7 +230,7 @@ function App() {
   }, [notificationDestination, activeView, bookings, chatRooms]);
 
   async function loadPosts(userId = currentUser?.id) {
-    const response = await fetch(`/api/listings?userId=${encodeURIComponent(userId || '')}`);
+    const response = await apiFetch(`/api/listings?userId=${encodeURIComponent(userId || '')}`);
     const listings = await response.json();
     if (!response.ok) throw new Error(listings.error || "Unable to load listings.");
     setPosts(listings);
@@ -266,7 +267,7 @@ function App() {
   }
 
   async function addPost(newPost) {
-    const response = await fetch("/api/listings", {
+    const response = await apiFetch("/api/listings", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentUser.sessionToken}` },
       body: JSON.stringify({ ...newPost, authorId: currentUser.id })
@@ -285,7 +286,7 @@ function App() {
       setFeedback("Permission Denied: Access control validation failed.");
       return;
     }
-    const response = await fetch(`/api/listings/${postId}`, { method: "DELETE", headers: {'Content-Type':'application/json'}, body:JSON.stringify({userId:currentUser.id}) });
+    const response = await apiFetch(`/api/listings/${postId}`, { method: "DELETE", headers: {'Content-Type':'application/json'}, body:JSON.stringify({userId:currentUser.id}) });
     if (!response.ok) {
       const result = await response.json();
       setFeedback(result.error || "Unable to delete listing.");
@@ -295,7 +296,7 @@ function App() {
   }
   async function handleRequestBooking(bookingData) {
     try {
-      const response = await fetch("/api/bookings", {
+      const response = await apiFetch("/api/bookings", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...bookingData, learnerId: currentUser.id })
       });
@@ -309,7 +310,7 @@ function App() {
 
   async function updateBooking(bookingId, action, reason) {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: currentUser.id, action, reason })
       });
@@ -330,7 +331,7 @@ function App() {
 
   async function handleInitializeSecureChat(participantId) {
     try {
-      const response = await fetch('/api/conversations', {
+      const response = await apiFetch('/api/conversations', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, participantId })
       });
@@ -345,7 +346,7 @@ function App() {
   async function handleSendEncryptedMessage(roomId, text, locationObject = null) {
     readConversation(roomId);
     try {
-      const response = await fetch('/api/conversations/' + roomId + '/messages', {
+      const response = await apiFetch('/api/conversations/' + roomId + '/messages', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, text, location: locationObject })
       });
@@ -360,14 +361,14 @@ function App() {
     const conversation = chatRooms.find(room => room.messages.some(message => message.id === messageId));
     if (conversation) readConversation(conversation.id);
     try {
-      const response = await fetch(`/api/messages/${messageId}/venue`, {
+      const response = await apiFetch(`/api/messages/${messageId}/venue`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: currentUser.id, action, bookingId })
       });
       const room = await response.json();
       if (!response.ok) throw new Error(room.error || "Unable to respond to venue.");
       setChatRooms(prev => prev.map(r => r.id === room.id ? room : r));
-      const bookingsResponse = await fetch(`/api/bookings?userId=${encodeURIComponent(currentUser.id)}`);
+      const bookingsResponse = await apiFetch(`/api/bookings?userId=${encodeURIComponent(currentUser.id)}`);
       if (bookingsResponse.ok) setBookings(await bookingsResponse.json());
       return true;
     } catch (error) { setFeedback(error.message); return false; }
@@ -422,7 +423,7 @@ function App() {
             {currentUser.id !== postItem.authorId && postItem.authorType === "coach" && (
               <button className="btn-view-profile-link" onClick={async () => {
                 try {
-                  const response = await fetch(`/api/profiles?q=${encodeURIComponent(postItem.authorName)}`);
+                  const response = await apiFetch(`/api/profiles?q=${encodeURIComponent(postItem.authorName)}`);
                   if (!response.ok) throw new Error("Unable to load coach profile.");
                   const profiles = await response.json();
                   const profile = profiles.find((item) => item.id === postItem.authorId);

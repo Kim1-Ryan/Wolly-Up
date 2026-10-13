@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import BookingList from "./BookingList";
 import ProfileReviews from "./ProfileReviews";
 import LearnerRating from "./LearnerRating";
@@ -23,7 +24,7 @@ function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onM
     try {
       let profileImage = user.profileImage || null;
       if (editPhoto) profileImage = await new Promise((resolve,reject)=>{ const reader = new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error('Unable to read your photo.')); reader.readAsDataURL(editPhoto); });
-      const response = await fetch(`/api/profiles/${user.id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bio:editBio,expertise:editExpertise,profileImage}) });
+      const response = await apiFetch(`/api/profiles/${user.id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bio:editBio,expertise:editExpertise,profileImage}) });
       const profile = await response.json();
       if (!response.ok) throw new Error(profile.error || 'Unable to save profile.');
       onUpdateProfile(profile); setIsEditing(false); setEditPhoto(null);

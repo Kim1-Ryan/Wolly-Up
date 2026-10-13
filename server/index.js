@@ -1,6 +1,8 @@
 import http from "node:http";
 import { randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
+import { readFile } from 'node:fs/promises';
+import { serveFrontend } from './static.js';
 import { pool } from "./db.js";
 import { bookingSchema, handleBookings, confirmMissingDurations, repairLegacyBookingDurations } from "./bookings.js";
 import { inboxSchema, handleInbox } from "./inbox.js";
@@ -50,7 +52,17 @@ async function passwordMatches(password, storedHash) {
 
 const server = http.createServer(async (request, response) => {
   try {
+    const origin=request.headers.origin;
+    const allowedOrigins=(process.env.FRONTEND_ORIGINS||'').split(',').map(value=>value.trim()).filter(Boolean);
+    if(origin&&allowedOrigins.includes(origin)) {
+      response.setHeader('Access-Control-Allow-Origin',origin);
+      response.setHeader('Vary','Origin');
+      response.setHeader('Access-Control-Allow-Headers','Content-Type, Authorization');
+      response.setHeader('Access-Control-Allow-Methods','GET, POST, PATCH, DELETE, OPTIONS');
+    }
+    if(request.method==='OPTIONS'){response.writeHead(204);response.end();return;}
     const url = new URL(request.url, "http://localhost");
+    if(await serveFrontend(request,response,url))return;
     if (await handleTokens(request,response,url,pool,readBody,sendJson)) return;
     if (await handleListings(request,response,url,pool,readBody,sendJson)) return;
     if (await handleBookings(request, response, url, pool, readBody, sendJson)) return;
@@ -234,6 +246,7 @@ const server = http.createServer(async (request, response) => {
 });
 
 async function startServer() {
+  await pool.query(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
   await pool.query(verificationSchema);
   await pool.query(bookingSchema);
   await pool.query(inboxSchema);
