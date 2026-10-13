@@ -22,12 +22,16 @@ Visit `/api/health` through the Vite URL to check the proxy and database connect
 - `npm run build` builds the frontend.
 - `npm run lint` runs ESLint.
 
-## Full app hosting
+## Full app hosting (free plans)
 
-GitHub Pages serves the frontend only. To run login, bookings and messages, deploy the Node server and PostgreSQL database as well.
+Use Netlify Free for the frontend and API, and Supabase Free for PostgreSQL. Neon is also compatible. The repository includes netlify.toml and a Netlify Function that runs the API. Free plans have usage limits; do not enable paid upgrades or automatic top-ups.
 
-[Deploy the full app on Render](https://render.com/deploy?repo=https://github.com/Kim1-Ryan/Wolly-Up)
+1. Create a Supabase Free project. Under Connect, copy the transaction pooler PostgreSQL URI (port 6543) with the database password and SSL enabled. Keep this URI private.
+2. Import this GitHub repository into Netlify on the Free plan. Build settings come from netlify.toml.
+3. Add DATABASE_URL as a secret environment variable for Functions, using the Supabase pooler connection string. Also set DATABASE_PROVIDER=supabase. This enables row-level security and removes public API access to application tables; database access stays server-side. Never commit it to GitHub.
+4. Redeploy. The API initializes the database schema automatically. Open /api/health on the Netlify site to verify connectivity.
+5. A new database is empty. Register an account, or migrate your local PostgreSQL data to preserve existing accounts and bookings.
 
-The included `render.yaml` provisions a free web service and a free PostgreSQL database. Render's free database expires after 30 days; use a persistent database plan before relying on it for ongoing data. The server initializes the database schema automatically and serves the built frontend at its Render URL. A newly created database has no accounts: register a new account, or migrate the local database to preserve existing accounts and bookings. Never commit `.env` or database backups.
+The Netlify URL serves the frontend and API together. To keep the GitHub Pages URL, set the GitHub Actions repository variable VITE_API_URL to the Netlify URL (without /api), and add https://kim1-ryan.github.io to the Netlify FRONTEND_ORIGINS environment variable. Then rerun the Pages workflow.
 
-To retain the GitHub Pages address, set the repository Actions variable `VITE_API_URL` to the Render service URL (without `/api`), then rerun the Pages workflow. `FRONTEND_ORIGINS` on the API allows the GitHub Pages origin. Local development continues to use Vite's existing API proxy.
+Providers: https://www.netlify.com/pricing/ and https://supabase.com/pricing. Supabase Free includes a 500 MB database and may pause after a week of inactivity. Free-tier quotas apply. Netlify pauses sites at the free limit; do not enable paid upgrades or top-ups.

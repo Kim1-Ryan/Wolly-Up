@@ -8,5 +8,9 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  max: process.env.NETLIFY ? 2 : 10,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
+  allowExitOnIdle: true
 });

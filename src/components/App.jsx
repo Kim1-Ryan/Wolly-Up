@@ -1,4 +1,4 @@
-import { apiFetch } from '../api';
+import { apiFetch, setApiSession } from '../api';
 import IdentityVerification from "./IdentityVerification";
 import ProfileReviews from "./ProfileReviews";
 import LearnerRating from "./LearnerRating";
@@ -237,6 +237,7 @@ function App() {
   }
 
   async function handleAuthSuccess(userProfileData) {
+    setApiSession(userProfileData.sessionToken);
     setCurrentUser(userProfileData);
     setIsLoggedIn(true);
     setActiveView("profileFeed");
@@ -248,6 +249,7 @@ function App() {
   }
 
   function handleLogout() {
+    setApiSession(null);
     setFeedback("");
     setSearchTerm("");
     setProfileSearch({ query: "", profiles: [], status: "idle" });

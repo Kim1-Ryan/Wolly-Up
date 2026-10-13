@@ -2,6 +2,8 @@ import http from "node:http";
 import { randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { readFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
 import { serveFrontend } from './static.js';
 import { pool } from "./db.js";
 import { bookingSchema, handleBookings, confirmMissingDurations, repairLegacyBookingDurations } from "./bookings.js";
@@ -9,7 +11,7 @@ import { inboxSchema, handleInbox } from "./inbox.js";
 import { verificationSchema, createSession, handleVerification } from "./verification.js";
 import { profileRatings, rankProfiles } from "./ratings.js";
 import { handleListings, listingSchema } from './listings.js';
-import { handleTokens, tokenSchema } from './tokens.js';
+import { handleTokens, tokenSchema, sessionUser } from './tokens.js';
 
 const port = process.env.PORT || 3002;
 const scrypt = promisify(scryptCallback);
@@ -33,9 +35,11 @@ async function publicProfile(profile) {
 }
 
 async function readBody(request) {
+  if(request.parsedBody!==undefined)return request.parsedBody;
   let body = "";
   for await (const chunk of request) body += chunk;
-  return body ? JSON.parse(body) : {};
+  request.parsedBody=body ? JSON.parse(body) : {};
+  return request.parsedBody;
 }
 
 async function hashPassword(password) {
@@ -50,7 +54,7 @@ async function passwordMatches(password, storedHash) {
   return timingSafeEqual(Buffer.from(key, "hex"), derivedKey);
 }
 
-const server = http.createServer(async (request, response) => {
+export async function handleRequest(request, response) {
   try {
     const origin=request.headers.origin;
     const allowedOrigins=(process.env.FRONTEND_ORIGINS||'').split(',').map(value=>value.trim()).filter(Boolean);
@@ -63,6 +67,23 @@ const server = http.createServer(async (request, response) => {
     if(request.method==='OPTIONS'){response.writeHead(204);response.end();return;}
     const url = new URL(request.url, "http://localhost");
     if(await serveFrontend(request,response,url))return;
+    const publicRoute=(request.method==='POST'&&['/api/auth/login','/api/auth/register'].includes(url.pathname)) ||
+      (request.method==='GET'&&(url.pathname==='/api/health'||url.pathname==='/api/profiles'||/^\/api\/profiles\/[^/]+\/ratings$/.test(url.pathname)||/^\/api\/coaches\/[^/]+\/availability$/.test(url.pathname)||(url.pathname==='/api/listings'&&!url.searchParams.get('userId'))));
+    if(url.pathname.startsWith('/api/')&&!publicRoute) {
+      const userId=await sessionUser(request,pool);
+      if(!userId){sendJson(response,401,{error:'Please sign in again.'});return;}
+      const queriedUser=url.searchParams.get('userId');
+      const profileEdit=url.pathname.match(/^\/api\/profiles\/([^/]+)$/);
+      if((queriedUser&&queriedUser!==userId)||(request.method==='PATCH'&&profileEdit&&profileEdit[1]!==userId)) {
+        sendJson(response,403,{error:'You can only access your own account data.'});return;
+      }
+      if(['POST','PATCH','DELETE'].includes(request.method)) {
+        const data=await readBody(request);
+        if(['userId','authorId','learnerId'].some(key=>data[key]!==undefined && data[key]!==userId)) {
+          sendJson(response,403,{error:'This action is not available for your account.'});return;
+        }
+      }
+    }
     if (await handleTokens(request,response,url,pool,readBody,sendJson)) return;
     if (await handleListings(request,response,url,pool,readBody,sendJson)) return;
     if (await handleBookings(request, response, url, pool, readBody, sendJson)) return;
@@ -243,10 +264,10 @@ const server = http.createServer(async (request, response) => {
     }
     sendJson(response, 500, { error: `Unable to save the request: ${error.message}` });
   }
-});
+}
 
-async function startServer() {
-  await pool.query(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
+export async function prepareDatabase() {
+  await pool.query(await readFile(resolve('server/schema.sql'),'utf8'));
   await pool.query(verificationSchema);
   await pool.query(bookingSchema);
   await pool.query(inboxSchema);
@@ -262,12 +283,20 @@ async function startServer() {
   )`);
   await pool.query(listingSchema);
   await pool.query(tokenSchema);
+  if(process.env.DATABASE_PROVIDER==='supabase') {
+    await pool.query(await readFile(resolve('server/supabase-security.sql'),'utf8'));
+  }
+}
+
+async function startServer() {
+  await prepareDatabase();
+  const server=http.createServer(handleRequest);
   server.listen(port, () => {
     console.log(`Wolly Up API listening on http://localhost:${port}`);
   });
 }
 
-startServer().catch((error) => {
+if(process.argv[1] && pathToFileURL(resolve(process.argv[1])).href===import.meta.url) startServer().catch((error) => {
   console.error("Unable to prepare the Wolly Up database:", error.message);
   process.exitCode = 1;
 });
