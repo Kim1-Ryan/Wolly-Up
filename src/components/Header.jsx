@@ -44,7 +44,7 @@ function Header({ isLoggedIn, user, activeView, onViewProfile, onViewFeed, onVie
         onClick={isLoggedIn ? onViewProfile : null} 
         style={{ cursor: isLoggedIn ? "pointer" : "default" }}
       >
-        <img src="/Wolly Up LOGO v1-inverted.png" alt="Wolly Up Logo" className="logo" /> 
+        <img src={`${import.meta.env.BASE_URL}Wolly Up LOGO v1-inverted.png`} alt="Wolly Up Logo" className="logo" /> 
         <span>Wolly Up</span>
       </h1>
       

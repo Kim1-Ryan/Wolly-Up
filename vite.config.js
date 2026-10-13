@@ -4,6 +4,7 @@ import process from 'node:process'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: process.env.PAGES_BASE_PATH || '/',
   plugins: [react()],
   server: {
     proxy: {
