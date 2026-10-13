@@ -1,0 +1,6 @@
+.learner-overall-rating { display: grid; gap: 7px; margin: 12px 0 18px; }
+.learner-rating-value { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #294d39; font-size: 14px; }
+.learner-rating-count { color: #64766b; font-size: 13px; }
+.profile-title-row.learner-name-row, .learner-name-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+.learner-name-row h2 { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.learner-name-row .learner-skill-level { margin-left: auto; flex-shrink: 0; color: #64766b; font-size: 14px; font-weight: 600; text-transform: capitalize; }

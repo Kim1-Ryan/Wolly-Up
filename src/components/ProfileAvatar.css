@@ -1,0 +1,6 @@
+.learner-profile-avatar { display: grid; place-items: center; width: 64px; height: 64px; flex: 0 0 64px; border-radius: 50%; overflow: hidden; background: #e0eee5; color: #265d41; font-size: 23px; font-weight: 700; }
+.learner-profile-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.learner-name-identity { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.learner-photo-editor { display: grid; gap: 10px; padding: 16px 0; font-size: 14px; }
+.learner-photo-editor p { margin: 0; color: #64766b; font-size: 13px; }
+.learner-photo-editor input { max-width: 100%; }

@@ -1,0 +1,33 @@
+.wolly-notifications { position: relative; flex-shrink: 0; font-family: Arial, sans-serif; }
+.wolly-notifications .wolly-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: transparent; }
+.header-actions-right .nav-icon-btn[aria-current="page"] { background: #dceee8; color: #164b3c; border-radius: 24px; }
+.wolly-notifications .wolly-bell:hover { background: #ffffff20; }
+.wolly-bell .notification-badge { position: absolute; top: -4px; right: -5px; border: 2px solid #184b3e; min-width: 20px; height: 20px; padding: 0 4px; font: 700 11px Arial, sans-serif; background: #d92d43; color: white; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.wolly-notification-panel { position: absolute; top: calc(100% + 12px); right: 0; z-index: 1000; width: 370px; max-width: calc(100vw - 24px); padding: 16px 8px 8px; border-radius: 12px; background: #fff; color: #202124; box-shadow: 0 8px 32px #0003, 0 0 0 1px #0000000d; text-align: left; font: 15px/1.4 Arial, sans-serif; }
+.wolly-notification-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 12px; }
+.wolly-notification-heading h2 { margin: 0; font: 700 24px/1.2 Arial, sans-serif; color: #202124; }
+.wolly-notification-panel button { font-family: Arial, sans-serif; cursor: pointer; }
+.wolly-notification-close { display: grid; place-items: center; border: 0; border-radius: 50%; width: 32px; height: 32px; background: #f0f2f5; color: #606770; padding: 4px; }
+.wolly-notification-filters { display: flex; gap: 8px; padding: 0 8px 16px; }
+.wolly-notification-filters button { border: 0; border-radius: 24px; padding: 8px 14px; font-size: 15px; font-weight: 600; background: transparent; color: #555; }
+.wolly-notification-filters button[aria-pressed=true] { background: #e5f2ed; color: #16634b; }
+.wolly-notification-subheading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 8px; }
+.wolly-notification-subheading button { border: 0; background: transparent; color: #16634b; padding: 4px; font-size: 13px; }
+.wolly-notification-list { max-height: min(480px, 60vh); overflow-y: auto; overscroll-behavior: contain; }
+.wolly-notification-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 8px; border: 0; border-radius: 8px; background: #fff; color: #25282b; text-align: left; }
+.wolly-notification-item:hover, .wolly-notification-item:focus-visible { background: #f0f2f5; }
+.wolly-notification-avatar { position: relative; display: grid; place-items: center; flex: 0 0 52px; height: 52px; border-radius: 50%; background: #dcebe5; color: #285b48; font-size: 22px; font-weight: 700; }
+.wolly-notification-avatar.message { background: #e7e6f7; color: #55508b; }
+.wolly-notification-type { position: absolute; bottom: -2px; right: -3px; display: grid; place-items: center; width: 23px; height: 23px; border: 2px solid white; border-radius: 50%; background: #247553; color: white; }
+.wolly-notification-type svg { font-size: 14px; }
+.wolly-notification-avatar.message .wolly-notification-type { background: #5e5ab0; }
+.wolly-notification-copy { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+.wolly-notification-copy small { color: #70777e; font-size: 12px; }
+.is-unread .wolly-notification-copy { font-weight: 600; }
+.is-unread .wolly-notification-copy small { color: #16724f; font-weight: 600; }
+.wolly-unread-dot { flex: 0 0 9px; height: 9px; background: #21845d; border-radius: 50%; }
+.wolly-notification-empty { padding: 28px 20px 32px; text-align: center; color: #697178; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.wolly-notification-empty > svg { font-size: 40px; color: #a1b4ac; }
+.wolly-notification-empty strong { color: #343c38; font-size: 16px; }
+.wolly-notification-empty p { margin: 0; font: 14px/1.5 Arial, sans-serif; }
+@media (max-width: 600px) { .wolly-notification-panel { position: fixed; top: 100px; right: 12px; width: calc(100vw - 24px); box-sizing: border-box; } }

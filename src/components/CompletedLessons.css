@@ -1,0 +1,19 @@
+.completed-lessons { margin-top: 24px; padding-top: 18px; border-top: 1px solid #dce6df; }
+.booking-decline-form textarea { box-sizing: border-box; width: 100%; padding: 12px; border: 1px solid #bbcec1; border-radius: 8px; font: inherit; resize: vertical; }
+.booking-decline-form small { color: #64766b; }
+.completed-lessons > summary { cursor: pointer; color: #294d39; font-weight: 600; padding: 8px 0; }
+.completed-lessons-count { display: inline-block; margin-left: 8px; padding: 3px 8px; border-radius: 20px; background: #edf3ef; color: #617569; font-size: 12px; }
+.completed-lessons-list { display: grid; gap: 12px; margin-top: 12px; }
+.completed-lesson { min-width: 0; padding: 18px; border: 1px solid #dce6df; border-radius: 12px; background: #f8faf9; }
+.completed-lesson-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.completed-lesson-heading p { margin: 6px 0 0; color: #64766b; font-size: 13px; }
+.completed-lesson-details { margin-top: 14px; border-top: 1px solid #e0e8e3; padding-top: 12px; font-size: 14px; }
+.completed-lesson-details summary { cursor: pointer; color: #256245; font-weight: 600; }
+.completed-lesson-details dl { display: grid; grid-template-columns: minmax(100px, .4fr) minmax(0, 1fr); gap: 8px 16px; margin: 18px 0; }
+.completed-lesson-details dt { color: #64766b; }
+.completed-lesson-details dd { margin: 0; overflow-wrap: anywhere; }
+.completed-lesson-details h5 { margin: 20px 0 10px; font-size: 14px; color: #294d39; }
+.completed-lesson-details p { overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.6; }
+.completed-lesson-payment { color: #64766b; font-size: 12px; margin-bottom: 0; }
+.completed-lessons summary:focus-visible { outline: 2px solid #267650; outline-offset: 3px; border-radius: 4px; }
+@media (max-width: 480px) { .completed-lesson { padding: 14px; } .completed-lesson-details dl { grid-template-columns: 1fr; gap: 5px; } .completed-lesson-details dd { margin-bottom: 8px; } }

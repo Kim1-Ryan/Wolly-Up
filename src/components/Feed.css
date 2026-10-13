@@ -1,0 +1,39 @@
+.main-feed-section { max-width: 1120px; margin: 0 auto; padding: 28px; border: 1px solid #dce6df; border-radius: 18px; background: #fff; }
+.feed-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.feed-heading .section-eyebrow { margin: 0 0 8px; color: #547260; font-size: 12px; font-weight: 600; }
+.feed-heading h2 { margin: 0; color: #234b36; font-size: 26px; }
+.feed-heading p:not(.section-eyebrow) { margin: 10px 0 0; color: #64766b; font-size: 14px; line-height: 1.6; }
+.feed-heading .listing-count { padding: 7px 12px; border-radius: 20px; background: #edf4ef; color: #466652; font-size: 12px; white-space: nowrap; }
+.feed-controls { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; margin: 24px 0; padding: 18px; border: 1px solid #e0e8e3; border-radius: 12px; background: #f6f9f7; }
+.feed-controls label { display: grid; gap: 8px; min-width: 0; color: #46614f; font-size: 12px; font-weight: 600; }
+.feed-search-filter { grid-column: 1; grid-row: 1; display: flex; gap: 4px; padding: 4px; width: fit-content; max-width: 100%; background: #e5eee8; border-radius: 24px; }
+.feed-search-filter button { border: 0; border-radius: 20px; padding: 9px 18px; background: transparent; color: #536c5b; font: inherit; font-size: 13px; cursor: pointer; }
+.feed-search-filter button[aria-pressed="true"] { background: white; color: #18583e; font-weight: 600; box-shadow: 0 1px 4px #183e2815; }
+.feed-search-filter button:focus-visible { outline: 2px solid #267650; outline-offset: 2px; }
+.feed-controls.profiles-only { grid-template-columns: minmax(0, 1fr); }
+.feed-search { grid-column: 1 / -1; grid-row: 2; }
+.feed-search-caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.feed-search-field { position: relative; }
+.feed-search-field > svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #6b8272; pointer-events: none; }
+.feed-controls label.feed-sort { grid-column: 2; grid-row: 1; display: flex; flex-direction: row; align-items: center; justify-content: flex-end; gap: 10px; }
+.feed-sort > span { white-space: nowrap; font-weight: 500; }
+.main-feed-section .feed-controls input, .main-feed-section .feed-controls select { box-sizing: border-box; width: 100%; min-width: 0; height: 46px; margin: 0; padding: 10px 14px; border: 1px solid #c7d8cc; border-radius: 9px; box-shadow: none; background: white; color: #294d39; font: inherit; font-size: 14px; font-weight: 400; }
+.main-feed-section .feed-search-field input { padding-left: 44px; height: 48px; border-radius: 12px; }
+.main-feed-section .feed-sort select { width: auto; min-width: 132px; height: 40px; padding: 8px 10px; font-size: 13px; }
+.feed-controls input:focus-visible, .feed-controls select:focus-visible, .feed-composer summary:focus-visible { outline: 2px solid #267650; outline-offset: 3px; }
+.feed-composer { margin-top: 20px; }
+.feed-composer > summary { margin-left: auto; }
+.feed-composer > summary { width: fit-content; padding: 10px 16px; list-style: none; border-radius: 22px; background: #18583e; color: white; font-size: 13px; font-weight: 600; cursor: pointer; }
+.feed-composer > summary::-webkit-details-marker { display: none; }
+.feed-composer .create-post { box-sizing: border-box; width: 100%; margin: 18px 0 0; }
+.feed-empty { display: grid; justify-items: center; gap: 12px; padding: 36px 20px; margin-top: 18px; border: 1px dashed #cbdacf; border-radius: 14px; background: #f8faf9; text-align: center; }
+.feed-empty-icon { display: grid; place-items: center; width: 54px; height: 54px; background: #e5efe8; border-radius: 15px; color: #50745c; }
+.feed-empty-icon svg { width: 28px; height: 28px; }
+.feed-empty h3 { margin: 0; color: #355642; font-size: 17px; }
+.feed-empty p { max-width: 440px; margin: 0; color: #64766b; font-size: 14px; line-height: 1.7; }
+.main-feed-section .profile-search-results { padding: 20px 0; margin: 0 0 20px; border-bottom: 1px solid #e0e8e3; }
+.main-feed-section .profile-search-card { padding: 20px; border: 1px solid #dce6df; border-radius: 12px; background: #f8faf9; }
+.main-feed-section .profile-search-card h4 { margin: 0 0 8px; color: #294d39; }
+.main-feed-section .profile-search-card p { color: #64766b; font-size: 13px; line-height: 1.6; }
+@media (max-width: 600px) { .main-feed-section { padding: 18px; } .feed-controls { grid-template-columns: minmax(0, 1fr); padding: 14px; } .feed-empty { padding: 28px 16px; } }
+@media (max-width: 600px) { .feed-controls label.feed-sort { grid-column: 1; grid-row: 3; justify-content: flex-start; } .feed-search-filter { width: 100%; box-sizing: border-box; } .feed-search-filter button { flex: 1; padding-left: 12px; padding-right: 12px; } }

@@ -1,0 +1,9 @@
+.profile-reviews { margin: 24px 0; padding: 22px; border: 1px solid #d8e4dc; border-radius: 14px; background: #fff; }
+.profile-reviews-heading, .profile-review > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.profile-reviews-heading h3 { margin: 0; color: #234b36; }
+.profile-reviews-heading > span, .profile-reviews > p, .profile-review small { color: #64766b; font-size: 13px; }
+.profile-review { margin-top: 18px; padding-top: 18px; border-top: 1px solid #e1e9e4; }
+.profile-review p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.profile-review-stars { color: #99701e; letter-spacing: 2px; }
+.profile-review-footer { margin-top: 14px; }
+.profile-review-package { margin-left: auto; text-align: right; text-transform: capitalize; }

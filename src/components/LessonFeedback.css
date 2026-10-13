@@ -1,0 +1,32 @@
+.venue-share-form.lesson-review-form { box-sizing: border-box; width: 100%; max-width: 760px; min-width: 0; padding: 24px; gap: 22px; border: 1px solid #d5e2d9; border-radius: 14px; background: #f8faf9; }
+.lesson-review-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.lesson-review-eyebrow { color: #667d6e; font-size: 12px; font-weight: 600; }
+.lesson-review-heading h4 { margin: 5px 0 0; color: #234b36; font-size: 19px; line-height: 1.4; }
+.lesson-review-date { padding: 7px 10px; border-radius: 8px; background: #eaf1ed; color: #536c5b; font-size: 12px; }
+.lesson-review-form label.lesson-review-confirm { display: flex; align-items: center; gap: 10px; padding: 14px; border: 1px solid #d8e4dc; border-radius: 9px; background: white; font-size: 14px; line-height: 1.5; cursor: pointer; }
+.lesson-review-form .lesson-review-confirm input { width: 18px; height: 18px; flex: 0 0 18px; margin: 0; padding: 0; accent-color: #226345; cursor: pointer; }
+.lesson-review-rating { min-width: 0; padding: 0; margin: 0; border: 0; }
+.lesson-review-rating legend { margin-bottom: 12px; padding: 0; color: #354e3e; font-size: 14px; font-weight: 600; }
+.lesson-rating-options { display: flex; gap: 6px; width: fit-content; max-width: 100%; }
+.lesson-review-form .lesson-rating-choice { position: relative; display: block; min-width: 0; cursor: pointer; }
+.lesson-review-form .lesson-rating-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; padding: 0; margin: 0; }
+.lesson-rating-choice > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 8px; }
+.lesson-rating-choice svg { width: 34px; height: 34px; fill: none; stroke: #64766b; stroke-width: 1.5; stroke-linejoin: round; }
+.lesson-rating-choice.is-filled svg { fill: #d6a539; stroke: #9b701a; }
+.lesson-rating-choice:hover > span { background: #e7f2eb; }
+.lesson-rating-description { margin: 8px 0 0; color: #53695b; font-size: 13px; }
+.lesson-rating-choice input:focus-visible + span { outline: 2px solid #267650; outline-offset: 3px; }
+.lesson-review-comments { color: #354e3e; font-size: 14px; font-weight: 600; }
+.lesson-review-comments small { color: #728078; font-weight: 400; }
+.lesson-review-form .lesson-review-comments textarea { box-sizing: border-box; min-width: 0; width: 100%; min-height: 96px; padding: 12px; border: 1px solid #c4d5ca; border-radius: 9px; resize: vertical; background: white; color: #273e30; font: inherit; font-weight: 400; line-height: 1.5; }
+.lesson-review-comments textarea::placeholder { color: #829087; }
+.lesson-review-confirm input:focus-visible, .lesson-review-comments textarea:focus-visible { outline: 2px solid #267650; outline-offset: 3px; }
+.lesson-review-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; padding-top: 18px; border-top: 1px solid #dce6df; }
+.lesson-review-footer > span { flex: 1 1 200px; color: #6a7b70; font-size: 12px; line-height: 1.5; }
+.lesson-review-footer button { min-height: 44px; margin: 0; }
+.lesson-review-error { margin: 0; color: #9a3029; font-size: 14px; }
+@media (max-width: 480px) {
+  .venue-share-form.lesson-review-form { padding: 16px; gap: 18px; }
+  .lesson-rating-options { gap: 5px; }
+  .lesson-review-footer button { width: 100%; justify-content: center; }
+}

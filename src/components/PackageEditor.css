@@ -1,0 +1,17 @@
+.coach-package-editor > h4 { margin: 0 0 8px; }
+.coach-package-editor > p { color: #64766b; font-size: 14px; line-height: 1.6; margin: 0 0 22px; }
+.package-editor-category { margin: 22px 0 0; }
+.package-editor-category h5 { margin: 0 0 12px; font-size: 14px; color: #294d39; }
+.coach-package-editor .rate-options-list { align-items: start; }
+.coach-package-editor .rate-option-row { min-width: 0; align-items: start; padding: 16px; gap: 16px; background: white; border-radius: 12px; }
+.coach-package-editor .rate-option-row.has-rate { border-color: #9ec6ad; background: #f5faf7; }
+.coach-package-editor .package-editor-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.coach-package-editor .package-editor-toggle input { flex: 0 0 18px; width: 18px; height: 18px; accent-color: #226345; }
+.package-editor-toggle > span { display: grid; gap: 4px; }
+.package-editor-toggle strong { font-size: 14px; }
+.package-editor-toggle small { color: #6a7d70; font-size: 12px; font-weight: 400; }
+.package-editor-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding-top: 14px; border-top: 1px solid #dce8df; }
+.coach-package-editor .package-editor-fields label { display: flex; flex-direction: column; align-items: stretch; gap: 7px; min-width: 0; font-size: 12px; }
+.coach-package-editor .package-editor-fields input { box-sizing: border-box; min-width: 0; width: 100%; height: 44px; padding: 10px; border: 1px solid #bbcec1; border-radius: 8px; background: white; font: inherit; font-size: 14px; color: #294d39; }
+.coach-package-editor input:focus-visible { outline: 2px solid #267650; outline-offset: 2px; }
+@media (max-width: 380px) { .package-editor-fields { grid-template-columns: minmax(0, 1fr); } }

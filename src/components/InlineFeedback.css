@@ -1,0 +1,59 @@
+.inline-feedback { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 16px; margin: 12px 0; border: 1px solid #b7cfc3; border-radius: 8px; background: #f0f7f3; color: #244b38; font: 14px/1.5 Arial, sans-serif; }
+.inline-feedback button { flex-shrink: 0; background: transparent; color: inherit; border: 0; padding: 0 4px; font-size: 22px; line-height: 1; cursor: pointer; }
+.venue-share-form { display: grid; gap: 12px; padding: 16px; margin-top: 12px; border: 1px solid #d4dfd8; border-radius: 10px; background: #f7faf8; }
+.venue-share-form label { display: grid; gap: 6px; }
+.venue-share-form input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #b7cfc3; border-radius: 6px; }
+.venue-share-form .venue-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.chat-room-container .chat-input-row { display: flex; flex-direction: row; align-items: center; gap: 10px; margin: 16px 0 0; padding: 0; }
+.chat-room-container .chat-input-row input { flex: 1; min-width: 0; width: auto; height: 46px; padding: 0 16px; border: 1px solid #c8d7cf; border-radius: 12px; box-sizing: border-box; margin: 0; }
+.chat-room-container .chat-input-row button { flex: 0 0 auto; height: 46px; padding: 0 24px; border-radius: 12px; margin: 0; }
+.chat-venue-section { margin-top: 18px; padding-top: 18px; border-top: 1px solid #dce5df; }
+.chat-venue-section .venue-share-form { width: 100%; box-sizing: border-box; margin: 0; padding: 20px; }
+.venue-map-hint { margin: 0; color: #617369; font: 13px/1.5 Arial, sans-serif; }
+.venue-map-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.venue-map-links a { display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid #bdcfc4; border-radius: 8px; color: #14563d; background: #fff; text-decoration: none; font: 600 13px/1.4 Arial, sans-serif; }
+.venue-map-links a:hover { background: #e7f1eb; }
+.conversation-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.conversation-heading h4 { margin: 0; }
+.mark-messages-read { margin-left: auto; padding: 7px 12px; border: 1px solid #cfddd5; border-radius: 20px; background: #f3f8f5; color: #285b43; font: 600 12px Arial, sans-serif; cursor: pointer; }
+.mark-messages-read:hover { background: #e3eee7; }
+.venue-response { margin-top: 14px; }
+.venue-response label { display: grid; gap: 6px; margin-bottom: 12px; }
+.venue-response select { max-width: 100%; padding: 8px; border-radius: 8px; }
+.venue-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.venue-response-status { margin: 12px 0 0; font-size: 13px; font-weight: 600; }
+.booking-details-log { margin-top: 18px; padding-top: 14px; border-top: 1px solid #cbdfd1; }
+.booking-details-log summary { cursor: pointer; font-weight: 600; }
+.booking-log-entry { background: #fff; padding: 14px; border-radius: 8px; margin-top: 10px; }
+.booking-log-entry .venue-map-links { margin-top: 10px; }
+.conversation-list { display: grid; gap: 6px; margin-top: 20px; }
+.conversation-list-item { display: flex; align-items: center; gap: 14px; width: 100%; border: 1px solid #e0e8e2; border-radius: 12px; background: #fff; padding: 16px; text-align: left; color: #263c30; cursor: pointer; }
+.conversation-list-item:hover { background: #f0f6f2; }
+.conversation-list-item.has-unread { background: #edf5ef; }
+.conversation-avatar { display: grid; place-items: center; flex: 0 0 48px; height: 48px; border-radius: 50%; background: #d9e9df; color: #215b41; font: 700 20px Arial, sans-serif; }
+.conversation-preview { display: grid; gap: 5px; flex: 1; min-width: 0; font: 14px/1.4 Arial, sans-serif; }
+.conversation-preview > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #68766d; }
+.conversation-meta { display: grid; justify-items: end; gap: 6px; color: #68766d; font: 12px Arial, sans-serif; }
+.conversation-unread { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 20px; background: #176242; color: #fff; font-weight: 700; }
+.conversation-back { margin: 12px 0; padding: 8px 0; border: 0; background: transparent; color: #176242; font-weight: 600; cursor: pointer; }
+
+.identity-verification-card { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 22px; margin-bottom: 24px; border: 1px solid #d4e3d9; border-radius: 14px; background: #f0f6f2; }
+.identity-verification-details { flex: 1; min-width: 0; }
+.identity-verification-details h3 { margin-top: 0; }
+.identity-verification-details p:last-child { margin-bottom: 0; }
+.identity-verification-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+.identity-verification-actions button { margin: 0; white-space: nowrap; }
+.identity-verification-actions p { margin: 0; max-width: 240px; text-align: right; }
+@media (max-width: 640px) { .identity-verification-card { flex-direction: column; align-items: stretch; gap: 16px; } .identity-verification-actions { align-items: stretch; } .identity-verification-actions p { text-align: left; max-width: none; } }
+
+.booking-actions { margin-top: 16px; }
+.booking-actions textarea { min-height: 80px; padding: 10px; border: 1px solid #c7d7cc; border-radius: 8px; font: inherit; }
+
+.booking-browser { margin-top: 24px; padding: 20px; background: #fff; border: 1px solid #dce6df; border-radius: 14px; }
+.booking-list-group { margin-top: 22px; }
+.booking-list-group h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.booking-list-group h4 > span { font: 600 12px Arial,sans-serif; color: #617569; background: #edf3ef; border-radius: 20px; padding: 3px 8px; }
+.booking-list-group .conversation-list { margin-top: 0; }
+.booking-list-empty { font-size: 14px; color: #77847c; margin: 12px 0; }
+.booking-list-status { font: 600 12px/1.4 Arial,sans-serif; padding: 5px 9px; border-radius: 20px; background: #edf4ef; color: #356047; }
+@media(max-width:640px){ .booking-browser { padding: 14px; } .booking-list-group .conversation-list-item { flex-wrap: wrap; } .booking-list-group .booking-list-status { margin-left: 62px; } }
