@@ -25,7 +25,7 @@ function App() {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null); 
-  const [activeView, setActiveView] = useState("profileFeed"); 
+  const [activeView, setActiveView] = useState("feed");
   const [selectedCoachForView, setSelectedCoachForView] = useState(null);
 
   const [posts, setPosts] = useState([]);
@@ -240,7 +240,8 @@ function App() {
     setApiSession(userProfileData.sessionToken);
     setCurrentUser(userProfileData);
     setIsLoggedIn(true);
-    setActiveView("profileFeed");
+    setSelectedCoachForView(null);
+    setActiveView("feed");
     try {
       await loadPosts(userProfileData.id);
     } catch (error) {

@@ -9,7 +9,7 @@ import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import NewspaperOutlinedIcon from "@mui/icons-material/NewspaperOutlined";
 
-function Header({ isLoggedIn, user, activeView, onViewProfile, onViewFeed, onViewMessages, onLogout, notifications = [], onOpenNotification, onMarkAllRead }) {
+function Header({ isLoggedIn, activeView, onViewProfile, onViewFeed, onViewMessages, onLogout, notifications = [], onOpenNotification, onMarkAllRead }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState("all");
   const menuRef = useRef(null);
@@ -40,26 +40,15 @@ function Header({ isLoggedIn, user, activeView, onViewProfile, onViewFeed, onVie
   return (
     <header>
       <div className="header-navigation-wrapper">
-      <h1 
-        onClick={isLoggedIn ? onViewProfile : null} 
-        style={{ cursor: isLoggedIn ? "pointer" : "default" }}
-      >
+      <h1>
+        <button type="button" className="header-home" onClick={onViewFeed} disabled={!isLoggedIn} aria-label="Wolly Up home">
         <img src={`${import.meta.env.BASE_URL}Wolly Up LOGO v1-inverted.png`} alt="Wolly Up Logo" className="logo" /> 
         <span>Wolly Up</span>
+        </button>
       </h1>
       
       {isLoggedIn && (
         <div className="header-actions-right">
-          <button 
-            className="nav-icon-btn profile-trigger" 
-            aria-current={activeView === 'profileFeed' ? 'page' : undefined}
-            onClick={onViewProfile} 
-            title="View Your Profile Feed"
-          >
-            <AccountCircleIcon />
-            <span className="nav-profile-name">{user.name}</span>
-          </button>
-          
           <button 
             className="nav-icon-btn" 
             onClick={onViewFeed} 
@@ -70,14 +59,25 @@ function Header({ isLoggedIn, user, activeView, onViewProfile, onViewFeed, onVie
             <span>Feed</span>
           </button>
 
+          <button
+            type="button"
+            className="nav-icon-btn profile-trigger"
+            aria-current={activeView === 'profileFeed' ? 'page' : undefined}
+            onClick={onViewProfile}
+            title="View your profile"
+            aria-label="View your profile"
+          >
+            <AccountCircleIcon />
+          </button>
+
           <button 
             className="nav-icon-btn" 
             onClick={onViewMessages} 
             aria-current={activeView === 'messages' ? 'page' : undefined}
             title="View Encrypted Messages"
+            aria-label="Messages"
           >
             <ForumOutlinedIcon />
-            <span>Messages</span>
             {unreadMessages > 0 && <span className="notification-badge">{unreadMessages}</span>}
           </button>
           <div className="wolly-notifications" ref={menuRef}>
