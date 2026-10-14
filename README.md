@@ -11,6 +11,28 @@ The API uses port 3002 by default. Set `PORT` in `.env` to change it; Vite's `/a
 
 To run the services in separate terminals, use `npm run api:dev` and `npm run dev:client` instead.
 
+## Supabase database
+
+The current project is `ealkuxfujxwbpfidshhg` (Wolly Up, Ireland). The app keeps
+its existing email/password login and server-side PostgreSQL queries. Set
+`DATABASE_PROVIDER=supabase` and a private pooler `DATABASE_URL` in the API host's
+environment. The connection URL must omit `sslmode` parameters: the server uses
+the bundled Supabase CA certificate and verifies TLS explicitly.
+
+`supabase/migrations/20261014000000_initial_wolly_up.sql` contains the current
+application schema and its security restrictions. The GitHub integration's
+working directory is `.`, with `main` as the production branch. Free-plan setup
+does not require preview branches. Regenerate the initial migration with
+`node scripts/export-supabase-schema.js` only before it has been deployed through
+GitHub; use new timestamped migrations for subsequent schema changes.
+
+For the initial local migration, `node scripts/connect-supabase.js` reads the
+new project's settings from the Git-ignored `.env.supabase.local`, copies the
+existing application's tables into an empty target in a transaction, checks
+record counts, and switches `.env` after success. It retains the source database
+and ignored local backups (`.database-backup.local` and `.env.pgadmin.local`).
+Do not commit or publish these files. Restart running services after switching.
+
 ## Login troubleshooting
 
 `ECONNREFUSED` for `/api/auth/login` means Vite cannot reach the API. Start both services with `npm run dev`, or start the API separately with `npm run api` if Vite is already running. Check the API terminal for database startup errors.

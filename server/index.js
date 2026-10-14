@@ -151,7 +151,7 @@ export async function handleRequest(request, response) {
       const result = await pool.query(
         `INSERT INTO profiles
           (id, name, email, password_hash, role, location, bio, age, expertise, title, profile_image, rates_structure, qualifications, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, FALSE)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)
          RETURNING *`,
         [
           randomUUID(), data.name, email, passwordHash, data.role,
