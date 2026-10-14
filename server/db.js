@@ -2,6 +2,7 @@ import "dotenv/config";
 import pg from "pg";
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
+import { resolve } from 'node:path';
 
 const { Pool } = pg;
 
@@ -14,7 +15,7 @@ export const pool = new Pool({
   ...(process.env.DATABASE_PROVIDER === 'supabase' ? {
     ssl: {
       rejectUnauthorized: true,
-      ca: readFileSync(new URL('../supabase/prod-ca-2021.crt', import.meta.url), 'utf8')
+      ca: readFileSync(resolve('supabase/prod-ca-2021.crt'), 'utf8')
     }
   } : {}),
   max: process.env.NETLIFY ? 2 : 10,
