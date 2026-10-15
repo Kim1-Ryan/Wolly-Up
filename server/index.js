@@ -108,6 +108,8 @@ export async function handleRequest(request, response) {
     if (request.method === "GET" && url.pathname === "/api/profiles") {
       const query = (url.searchParams.get("q") || "").trim();
       const role=url.searchParams.get('role');
+      const profileId=url.searchParams.get('id') || null;
+      if(profileId && !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(profileId)){sendJson(response,400,{error:'Invalid profile.'});return;}
       if(role && !['coach','learner'].includes(role)){sendJson(response,400,{error:'Invalid profile role.'});return;}
       const result = await pool.query(
         `SELECT id, name, role, location, bio, expertise, title, profile_image,
@@ -115,8 +117,9 @@ export async function handleRequest(request, response) {
          FROM profiles
          WHERE deleted_at IS NULL AND ($1='' OR strpos(lower(concat_ws(' ', name, role, location, bio, expertise, title)), lower($1)) > 0)
            AND ($2::text IS NULL OR role=$2)
+           AND ($3::uuid IS NULL OR id=$3)
          ORDER BY lower(name), id`,
-        [query,role]
+        [query,role,profileId]
       );
       sendJson(response, 200, rankProfiles(await Promise.all(result.rows.map(publicProfile))));
       return;

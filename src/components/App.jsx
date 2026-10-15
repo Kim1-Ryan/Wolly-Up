@@ -22,6 +22,7 @@ import LoadingSpinner from './LoadingSpinner';
 import './ProfileExperience.css';
 import AccountSettings from './AccountSettings';
 import EmailUnsubscribe from './EmailUnsubscribe';
+import { readNavigation, saveNavigation, clearNavigation } from '../navigation';
 
 function App() {
   const updateVerification = useCallback(isVerified => setCurrentUser(prev => prev ? { ...prev, isVerified } : prev), []);
@@ -34,6 +35,7 @@ function App() {
   const [sessionAttempt, setSessionAttempt] = useState(0);
   const [unsubscribeToken] = useState(()=>new URLSearchParams(window.location.search).get('unsubscribe'));
   const [activeView, setActiveView] = useState("feed");
+  const [navigationReady,setNavigationReady] = useState(false);
   const [selectedCoachForView, setSelectedCoachForView] = useState(null);
 
   const [posts, setPosts] = useState([]);
@@ -69,6 +71,24 @@ function App() {
         if (!response.ok) throw new Error('Unable to restore your session. Please try again.');
         const profile = await response.json();
         if (cancelled) return;
+        const navigation = readNavigation(profile.id);
+        let viewedProfile = null;
+        if (navigation.profileId && navigation.profileId !== profile.id) {
+          const profileResponse = await apiFetch(`/api/profiles?id=${encodeURIComponent(navigation.profileId)}`);
+          if (!profileResponse.ok) throw new Error('Unable to restore the open profile.');
+          const profiles = await profileResponse.json();
+          viewedProfile = profiles.find(item=>item.id===navigation.profileId) || null;
+          if (!viewedProfile) setFeedback('That profile is no longer available.');
+        }
+        if (cancelled) return;
+        setActiveView(navigation.view);
+        setSelectedCoachForView(viewedProfile);
+        setSelectedRoomId(navigation.roomId);
+        setSearchTerm(navigation.searchTerm);
+        setSearchType(navigation.searchType);
+        setSortBy(navigation.sortBy);
+        setMaxBudget(navigation.maxBudget);
+        setNavigationReady(true);
         setCurrentUser({ ...profile, sessionToken: token });
         setIsLoggedIn(true);
         setRestoringSession(false);
@@ -79,6 +99,10 @@ function App() {
     void restoreSession();
     return () => { cancelled = true; };
   }, [sessionAttempt, unsubscribeToken]);
+  useEffect(()=>{
+    if (!navigationReady || !isLoggedIn || !currentUser?.id) return;
+    saveNavigation(currentUser.id,{view:activeView,profileId:selectedCoachForView?.id,roomId:selectedRoomId,searchTerm,searchType,sortBy,maxBudget});
+  },[navigationReady,isLoggedIn,currentUser?.id,activeView,selectedCoachForView?.id,selectedRoomId,searchTerm,searchType,sortBy,maxBudget]);
   useEffect(() => {
     if(!currentUser?.id)return;
     let cancelled=false;
@@ -278,6 +302,8 @@ function App() {
     if (userProfileData.referralRewarded) setFeedback('Welcome! Your 5 free referral tokens have been added to your wallet.');
     setSelectedCoachForView(null);
     setActiveView("feed");
+    setSelectedRoomId(null);
+    setNavigationReady(true);
     try {
       await loadPosts(userProfileData.id);
     } catch (error) {
@@ -286,6 +312,8 @@ function App() {
   }
 
   function handleLogout() {
+    clearNavigation(currentUser?.id);
+    setNavigationReady(false);
     setApiSession(null);
     setFeedback("");
     setSearchTerm("");

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { readOpenBooking, saveOpenBooking } from '../navigation';
 import BookingActions from "./BookingActions";
 import ConfirmedLesson from "./ConfirmedLesson";
 import LessonFeedback from "./LessonFeedback";
@@ -10,7 +11,8 @@ import { readablePackage } from '../packages';
 const labels = {pending_coach_approval:"Awaiting coach approval",awaiting_immediate_payment:"Awaiting payment",booking_confirmed_and_paid:"Confirmed",cancelled:"Cancelled",declined_by_coach:"Declined"};
 
 export default function BookingList({ bookings, user, isCoach = false, onChanged, onCoachAction, onMessageInit, onCheckout, initialBookingId = null }) {
-  const [selectedId,setSelectedId]=useState(initialBookingId);
+  const [selectedId,setSelectedId]=useState(()=>initialBookingId || readOpenBooking(user.id));
+  useEffect(()=>{ saveOpenBooking(user.id,selectedId); },[user.id,selectedId]);
   const [busy,setBusy]=useState(false);
   const [declining,setDeclining]=useState(false);
   const [declineReason,setDeclineReason]=useState('');
