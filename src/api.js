@@ -1,5 +1,15 @@
-let sessionToken=null;
-export function setApiSession(token) {sessionToken=token || null;}
+const SESSION_KEY = 'wolly-up-session';
+export function getSavedSession() {
+  try { return localStorage.getItem(SESSION_KEY); } catch { return null; }
+}
+let sessionToken=getSavedSession();
+export function setApiSession(token) {
+  sessionToken=token || null;
+  try {
+    if (sessionToken) localStorage.setItem(SESSION_KEY, sessionToken);
+    else localStorage.removeItem(SESSION_KEY);
+  } catch { /* Keep sign-in usable when browser storage is unavailable. */ }
+}
 
 export function apiUrl(path, origin=import.meta.env?.VITE_API_URL || '') {
   return typeof path==='string' && path.startsWith('/api/') && origin ? `${origin.replace(/\/$/,'')}${path}` : path;

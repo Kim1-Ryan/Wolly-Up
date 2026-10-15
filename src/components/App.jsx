@@ -1,4 +1,4 @@
-import { apiFetch, setApiSession } from '../api';
+import { apiFetch, getSavedSession, setApiSession } from '../api';
 import IdentityVerification from "./IdentityVerification";
 import ProfileReviews from "./ProfileReviews";
 import LearnerRating from "./LearnerRating";
@@ -25,6 +25,9 @@ function App() {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null); 
+  const [restoringSession, setRestoringSession] = useState(() => Boolean(getSavedSession()));
+  const [sessionError, setSessionError] = useState('');
+  const [sessionAttempt, setSessionAttempt] = useState(0);
   const [activeView, setActiveView] = useState("feed");
   const [selectedCoachForView, setSelectedCoachForView] = useState(null);
 
@@ -44,6 +47,32 @@ function App() {
   const [searchType,setSearchType]=useState('all');
   const profileListings = posts.filter(post => post.authorId === (selectedCoachForView?.id || currentUser?.id) && !['expired','archived'].includes(post.status));
   const listingHistory = posts.filter(post=>post.authorId===currentUser?.id && ['expired','archived'].includes(post.status));
+  useEffect(() => {
+    const token = getSavedSession();
+    if (!token) return;
+    let cancelled = false;
+    async function restoreSession() {
+      try {
+        const response = await apiFetch('/api/auth/session');
+        if (cancelled) return;
+        if (response.status === 401) {
+          setApiSession(null);
+          setRestoringSession(false);
+          return;
+        }
+        if (!response.ok) throw new Error('Unable to restore your session. Please try again.');
+        const profile = await response.json();
+        if (cancelled) return;
+        setCurrentUser({ ...profile, sessionToken: token });
+        setIsLoggedIn(true);
+        setRestoringSession(false);
+      } catch {
+        if (!cancelled) setSessionError('Unable to reconnect. Your sign-in has been saved. Please try again.');
+      }
+    }
+    void restoreSession();
+    return () => { cancelled = true; };
+  }, [sessionAttempt]);
   useEffect(() => {
     if(!currentUser?.id)return;
     let cancelled=false;
@@ -375,6 +404,17 @@ function App() {
       if (bookingsResponse.ok) setBookings(await bookingsResponse.json());
       return true;
     } catch (error) { setFeedback(error.message); return false; }
+  }
+
+  if (restoringSession) {
+    return <div className="app-container">
+      <Header isLoggedIn={false} />
+      <main className="main-content">
+        <p role="status">{sessionError || 'Restoring your session…'}</p>
+        {sessionError && <button type="button" className="btn-primary" onClick={() => { setSessionError(''); setSessionAttempt(attempt => attempt + 1); }}>Try again</button>}
+      </main>
+      <Footer />
+    </div>;
   }
 
   // LOGOUT SECURITY REJECTION: If unauthenticated, exit view logic immediately

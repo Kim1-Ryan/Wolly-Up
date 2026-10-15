@@ -84,6 +84,13 @@ export async function handleRequest(request, response) {
         }
       }
     }
+    if (request.method === 'GET' && url.pathname === '/api/auth/session') {
+      const userId = await sessionUser(request, pool);
+      const profile = (await pool.query('SELECT * FROM profiles WHERE id=$1', [userId])).rows[0];
+      if (!profile) { sendJson(response, 401, { error: 'Please sign in again.' }); return; }
+      sendJson(response, 200, await publicProfile(profile));
+      return;
+    }
     if (await handleTokens(request,response,url,pool,readBody,sendJson)) return;
     if (await handleListings(request,response,url,pool,readBody,sendJson)) return;
     if (await handleBookings(request, response, url, pool, readBody, sendJson)) return;
