@@ -16,7 +16,9 @@
 .profile-edit-form { display: grid; gap: 20px; }
 .profile-edit-form legend { margin-inline-start: auto; padding: 0 8px; color: #234b36; font-size: 16px; font-weight: 600; text-align: right; }
 .package-rates-grid .package-matrix-template-view { display: flex; flex-direction: column; }
-.package-rates-grid .matrix-tier-body { flex: 1; }
+.package-rates-grid .matrix-tier-body { display: flex; flex-direction: column; gap: 14px; flex: 1; min-width: 0; }
+.package-rates-grid .matrix-tier-body > p { margin: 0; }
+.package-rates-grid .matrix-tier-body .package-select-button { align-self: flex-end; margin-top: auto; max-width: 100%; text-align: center; justify-content: center; }
 .profile-feed-view .booking-list-group { padding: 16px; margin-top: 16px; border: 1px solid var(--profile-line); border-radius: 10px; }
 .profile-feed-view .booking-list-group h4 { margin: 0 0 12px; }
 .profile-feed-view .booking-list-group .booking-list-empty { margin: 0; color: #385544; line-height: 1.6; }
@@ -46,7 +48,11 @@
 .profile-feed-view .editor-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 6px; }
 .learner-edit-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .35fr); align-items: start; gap: 20px; margin-bottom: 20px; }
 .learner-photo-editor { padding-top: 0; margin-bottom: 16px; }
-.package-validity { padding: 10px 12px; border-radius: 8px; background: #dceee2; color: #234b36; font-size: 13px; line-height: 1.6; }
+.package-validity { box-sizing: border-box; width: fit-content; max-width: 100%; margin-left: auto; padding: 10px 12px; border-radius: 8px; background: #dceee2; color: #234b36; font-size: 13px; line-height: 1.6; text-align: center; }
+.package-rates-grid .matrix-tier-body > .package-validity { align-self: flex-end; }
+.availability-calendar-block .booking-package-picker { width: fit-content; max-width: 100%; margin-left: auto; justify-items: end; text-align: right; }
+.availability-calendar-block .booking-package-picker select { width: auto; max-width: 100%; field-sizing: content; font-size: 14px; }
+.availability-calendar-block .booking-package-picker small { max-width: 100%; line-height: 1.6; }
 .booking-package-picker .package-validity { color: #234b36; }
 .calendar-activity { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 16px; margin-bottom: 20px; background: #f2f8f4; border: 1px solid #aecbb8; border-radius: 12px; }
 .calendar-activity-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
@@ -57,7 +63,7 @@
 .calendar-activity-controls select { min-height: 40px; padding: 8px; border: 1px solid #aecbb8; border-radius: 8px; background: white; color: #294d39; font: inherit; }
 .calendar-activity-total { display: grid; gap: 6px; margin: 0; color: #234b36; }
 .calendar-activity-total span { font-size: 13px; color: #385544; }
-.feed-sort-menu { grid-column: 2; grid-row: 1; align-self: center; position: relative; }
+.feed-sort-menu { grid-column: 2; grid-row: 1; align-self: center; justify-self: end; width: max-content; position: relative; }
 .feed-sort-menu > summary { padding: 10px 14px; border: 1px solid #aecbb8; border-radius: 9px; background: white; color: #294d39; cursor: pointer; font-size: 14px; }
 .feed-sort-panel { position: absolute; z-index: 5; top: calc(100% + 8px); right: 0; width: min(310px, calc(100vw - 96px)); padding: 18px; display: grid; gap: 18px; border: 1px solid #aecbb8; border-radius: 12px; background: white; box-shadow: 0 8px 28px #183e2826; }
 .feed-sort-panel label { font-size: 14px; }
@@ -69,7 +75,9 @@
 @media (max-width: 600px) {
   .learner-edit-fields { grid-template-columns: minmax(0, 1fr); }
   .learner-skill-editor { justify-self: end; width: min(100%, 220px); }
-  .feed-sort-menu { grid-column: 1; grid-row: 3; }
+  .feed-sort-menu { grid-column: 1; grid-row: 3; max-width: 100%; }
+  .feed-sort-menu[open] { width: min(310px, 100%); }
+  .feed-sort-menu > summary { width: fit-content; margin-left: auto; }
   .feed-sort-panel { position: static; box-sizing: border-box; width: 100%; margin-top: 10px; box-shadow: none; }
   .profile-feed-view .inline-editor-box { padding: 16px; }
 }

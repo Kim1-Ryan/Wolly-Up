@@ -609,7 +609,7 @@ function App() {
                 }}
                 className="search-input"
               /></div></label>
-              {searchType!=='profiles'&&<details className="feed-sort-menu"><summary>Sort & budget{maxBudget!==null?' · 1 filter':''}</summary><div className="feed-sort-panel"><label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort listings">
+              {searchType!=='profiles'&&<details className="feed-sort-menu"><summary aria-label={maxBudget!==null?'Sort, budget filter active':'Sort'}>Sort</summary><div className="feed-sort-panel"><label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort listings">
                 <option value="newest">Newest first</option>
                 <option value="oldest">Oldest first</option>
                 <option value="title">Title A–Z</option>
