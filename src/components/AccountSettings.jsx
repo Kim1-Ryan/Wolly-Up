@@ -33,16 +33,20 @@ export default function AccountSettings({ user, onDeleted }) {
   return <section className="account-settings" aria-label="Account settings">
     <InlineFeedback message={feedback} onDismiss={()=>setFeedback('')}/>
     {error?<div role="status"><p>{error}</p><button type="button" className="btn-secondary" onClick={()=>{setError('');setAttempt(value=>value+1);}}>Try again</button></div>:!account?<LoadingSpinner label="Loading account settings"/>:<>
-      <section className="referral-feature">
-        <h3>Earn free tokens</h3>
+      <details className="account-section referral-feature">
+        <summary className="account-section-summary"><span className="account-summary-copy"><strong>Earn free tokens</strong><small>Invite friends and earn listing tokens.</small></span><span className="account-section-chevron" aria-hidden="true"/></summary>
+        <div className="account-section-content">
         <p>Invite a friend to Wolly Up. You earn <strong>10 tokens</strong> when they sign up with your link, and they receive <strong>5 free tokens</strong>.</p>
         <label>Your personal referral link<div className="referral-link-row"><input ref={linkInput} type="url" readOnly value={referralLink}/><button type="button" className="btn-secondary" onClick={async()=>{
           try{await navigator.clipboard.writeText(referralLink);setFeedback('Referral link copied.');}
           catch{linkInput.current?.focus();linkInput.current?.select();setFeedback('Select and copy your referral link.');}
         }}>Copy link</button></div></label>
         <small>{account.referrals} successful {account.referrals===1?'referral':'referrals'} · Rewards apply once per new friend’s email address.</small>
-      </section>
-      <form className="email-preferences" onSubmit={async event=>{
+        </div>
+      </details>
+      <details className="account-section email-preferences">
+        <summary className="account-section-summary"><span className="account-summary-copy"><strong>Email preferences</strong><small>Manage marketing emails. Account emails stay enabled.</small></span><span className="account-section-chevron" aria-hidden="true"/></summary>
+      <form className="account-section-content" onSubmit={async event=>{
         event.preventDefault();if(saving)return;setSaving(true);
         try{
           const response=await apiFetch('/api/account/email-preferences',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({marketingEmails:marketing})});
@@ -50,13 +54,14 @@ export default function AccountSettings({ user, onDeleted }) {
           setAccount(previous=>({...previous,marketingEmails:data.marketingEmails}));setFeedback(data.marketingEmails?'Marketing emails enabled.':'You’ve unsubscribed from marketing emails. Important account emails are unaffected.');
         }catch(error){setFeedback(error.message);}finally{setSaving(false);}
       }}>
-        <h3>Email preferences</h3><p>{account.email}</p>
+        <p>{account.email}</p>
         <label className="account-checkbox"><input type="checkbox" checked={marketing} disabled={saving} onChange={event=>setMarketing(event.target.checked)}/> Send me marketing emails, offers and platform updates.</label>
         <p className="account-note">Important emails about your account, data, security, bookings and notifications remain enabled.</p>
         <button className="btn-secondary" disabled={saving || marketing===account.marketingEmails}>{saving?'Saving…':'Save email preferences'}</button>
       </form>
+      </details>
     </>}
-    <section className="account-deletion"><h3>Delete account</h3><p>Permanently remove your account and sign-in access.</p><button type="button" className="btn-delete-account" onClick={()=>{setReason('');setConfirmed(false);setDeleteError('');dialog.current.showModal();}}>Delete my account</button></section>
+    <details className="account-section account-deletion"><summary className="account-section-summary"><span className="account-summary-copy"><strong>Delete account</strong><small>Permanently remove your account and sign-in access.</small></span><span className="account-section-chevron" aria-hidden="true"/></summary><div className="account-section-content"><p>You’ll be asked to confirm and provide a reason before your account is deleted.</p><button type="button" className="btn-delete-account" onClick={()=>{setReason('');setConfirmed(false);setDeleteError('');dialog.current.showModal();}}>Delete my account</button></div></details>
     <dialog ref={dialog} className="account-delete-dialog" aria-labelledby="delete-account-heading" onCancel={event=>{if(deleting)event.preventDefault();}}>
       <form onSubmit={async event=>{
         event.preventDefault();if(deleting||!confirmed||!reason.trim())return;setDeleting(true);setDeleteError('');
