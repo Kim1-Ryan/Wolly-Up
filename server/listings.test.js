@@ -24,10 +24,26 @@ test('learner posting is free, with an optional budget',async()=>{
   assert.equal(inserted[4],0);
   assert.equal(inserted[5],'active');
 });
-test('learner fourth active listing is rejected',async()=>{
-  const {response,inserted}=await create('learner',3);
-  assert.equal(response.status,409);
-  assert.equal(inserted,undefined);
+test('learner additional listings cost 5 tokens first and 10 thereafter',async()=>{
+  const first=await create('learner',3,{expectedTokenCost:5});
+  assert.equal(first.response.status,201);
+  assert.deepEqual(first.charges,[5]);
+  const later=await create('learner',4,{expectedTokenCost:10},100,1);
+  assert.equal(later.response.status,201);
+  assert.deepEqual(later.charges,[10]);
+  const free=await create('learner',2,{},100,5);
+  assert.deepEqual(free.charges,[]);
+});
+
+test('learner paid listings enforce balance and the agreed quote',async()=>{
+  const insufficient=await create('learner',3,{expectedTokenCost:5},4);
+  assert.equal(insufficient.response.status,402);
+  assert.equal(insufficient.inserted,undefined);
+  assert.deepEqual(insufficient.charges,[]);
+  const stale=await create('learner',3,{expectedTokenCost:5},100,1);
+  assert.equal(stale.response.status,409);
+  assert.equal(stale.inserted,undefined);
+  assert.deepEqual(stale.charges,[]);
 });
 
 test('first paid listing costs 10 tokens and later ones cost 20',async()=>{
@@ -80,6 +96,28 @@ test('special pricing requires a discount and future expiry',()=>{
 
 test('ordinary listings never receive an expiry',()=>{
   assert.deepEqual(offerTerms({expiresAt:'2026-11-01T12:00:00Z'},250,0),{expiresAt:null,specialPrice:null});
+});
+
+test('specials stop at 30 days unless the 60-day extension is selected',()=>{
+  const now=Date.parse('2026-10-15T12:00:00Z');
+  const special=days=>({isSpecial:true,specialPrice:200,expiresAt:new Date(now+days*86400000).toISOString()});
+  assert.doesNotThrow(()=>offerTerms(special(30),250,now));
+  assert.throws(()=>offerTerms(special(31),250,now),/30 days/);
+  assert.doesNotThrow(()=>offerTerms({...special(60),extendSpecial:true},250,now));
+  assert.throws(()=>offerTerms({...special(61),extendSpecial:true},250,now),/60 days/);
+});
+
+test('special extensions charge 10 extra tokens and cannot bypass the quote',async()=>{
+  const special={category:'adult_individual',packSize:'single',isSpecial:true,specialPrice:200,extendSpecial:true,expiresAt:new Date(Date.now()+45*86400000).toISOString()};
+  const paid=await create('coach',0,{...special,expectedTokenCost:20});
+  assert.equal(paid.response.status,201);
+  assert.deepEqual(paid.charges,[20]);
+  const underquoted=await create('coach',0,special);
+  assert.equal(underquoted.response.status,409);
+  assert.equal(underquoted.inserted,undefined);
+  const insufficient=await create('coach',0,{...special,expectedTokenCost:20},19);
+  assert.equal(insufficient.response.status,402);
+  assert.deepEqual(insufficient.charges,[]);
 });
 
 test('removing a listing archives it for its owner instead of deleting history',async()=>{

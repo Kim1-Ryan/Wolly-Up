@@ -1,4 +1,5 @@
 import './ProfileReviews.css';
+import { readablePackage } from '../packages';
 
 export default function ProfileReviews({ user }) {
   const reviews = user.reviews || [];
@@ -8,7 +9,7 @@ export default function ProfileReviews({ user }) {
     {reviews.map((review, index) => <article className="profile-review" key={`${review.createdAt}-${index}`}>
       <div><strong>{review.authorName}</strong><span aria-label={`${review.rating} out of 5 stars`} className="profile-review-stars">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span></div>
       {review.comment && <p>{review.comment}</p>}
-      <div className="profile-review-footer"><small>{new Date(review.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}</small>{review.package&&<small className="profile-review-package">{review.package.replaceAll('_', ' ').replace(/\b(adult|junior)\s+(individual|group)\b/gi, '$1 · $2')}</small>}</div>
+      <div className="profile-review-footer"><small>{new Date(review.createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })}</small>{review.package&&<small className="profile-review-package">{readablePackage(review.package).replaceAll('_', ' ').replace(/\b(adult|junior)\s+(individual|group)\b/gi, '$1 · $2')}</small>}</div>
     </article>)}
   </section>;
 }

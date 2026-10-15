@@ -1,0 +1,65 @@
+.profile-feed-view { --profile-panel: #e0eee5; --profile-line: #aecbb8; }
+.profile-feed-view .rates-packages-block,
+.profile-feed-view .availability-calendar-block,
+.profile-feed-view .platform-policies-container-card,
+.profile-feed-view .profile-listings-empty,
+.profile-feed-view .booking-list-group,
+.profile-feed-view .completed-lessons,
+.profile-feed-view .profile-search-card { background: var(--profile-panel); border-color: var(--profile-line); }
+.profile-feed-view .token-wallet { background: #e0eee5; border-color: #aecbb8; }
+.profile-feed-view .profile-reviews { border-color: #aecbb8; }
+.profile-feed-view .personal-listings-section { border-color: var(--profile-line); }
+.profile-feed-view .coach-bio-paragraph,
+.profile-feed-view .profile-loc,
+.profile-feed-view .profile-meta-row { color: #385544; }
+.profile-feed-view .inline-editor-box { box-sizing: border-box; min-width: 0; padding: 22px; background: #e0eee5; border: 1px solid #aecbb8; }
+.profile-edit-form { display: grid; gap: 20px; }
+.profile-edit-form legend { padding: 0 8px; color: #234b36; font-size: 16px; font-weight: 600; }
+.profile-feed-view .inline-editor-box label { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 0; color: #294d39; font: inherit; font-size: 14px; font-weight: 600; }
+.profile-feed-view .inline-editor-box input:not([type="checkbox"]),
+.profile-feed-view .inline-editor-box textarea,
+.profile-feed-view .inline-editor-box select { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px; border: 1px solid #a7c2b1; border-radius: 8px; background: #fff; color: #234734; font-family: inherit; font-size: 15px; font-weight: 400; line-height: 1.5; }
+.profile-feed-view .inline-editor-box textarea { min-height: 120px; resize: vertical; }
+.profile-feed-view .inline-editor-box input:focus-visible,
+.profile-feed-view .inline-editor-box textarea:focus-visible,
+.profile-feed-view .inline-editor-box select:focus-visible { outline: 2px solid #267650; outline-offset: 3px; }
+.profile-feed-view .coach-title-editor { margin: 0; }
+.profile-feed-view .inline-editor-box label { letter-spacing: 0; }
+.profile-feed-view .coach-package-editor > p,
+.profile-feed-view .coach-package-editor .package-editor-toggle small { color: #385544; }
+.profile-feed-view .coach-photo-requirement { padding: 16px; border: 1px solid #b4cfbe; border-radius: 10px; background: #f2f8f4; }
+.coach-photo-requirement h4 { margin: 0 0 8px; font-size: 14px; color: #294d39; }
+.coach-photo-requirement p { margin: 0 0 12px; color: #385544; font-size: 13px; line-height: 1.6; }
+.profile-feed-view .rate-template-builder-box { margin: 0; padding: 18px; background: #f2f8f4; border-color: #b4cfbe; }
+.profile-feed-view .coach-package-editor .package-editor-toggle { display: flex; }
+.profile-feed-view .coach-package-editor .package-editor-fields label { font-size: 13px; }
+.profile-feed-view .coach-package-editor .rate-option-row.has-rate { background: #e0eee5; }
+.profile-feed-view .editor-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 6px; }
+.learner-edit-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .35fr); align-items: start; gap: 20px; margin-bottom: 20px; }
+.learner-photo-editor { padding-top: 0; margin-bottom: 16px; }
+.package-validity { padding: 10px 12px; border-radius: 8px; background: #dceee2; color: #234b36; font-size: 13px; line-height: 1.6; }
+.booking-package-picker .package-validity { color: #234b36; }
+.calendar-activity { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 16px; margin-bottom: 20px; background: #f2f8f4; border: 1px solid #aecbb8; border-radius: 12px; }
+.calendar-activity-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.period-toggle { display: flex; padding: 4px; background: #cddfd3; border-radius: 10px; }
+.period-toggle button { min-height: 40px; padding: 8px 16px; border: 0; border-radius: 7px; background: transparent; color: #294d39; font: inherit; cursor: pointer; }
+.period-toggle button[aria-pressed="true"] { background: #18583e; color: white; }
+.calendar-activity-controls label { display: flex; align-items: center; gap: 8px; color: #294d39; font-size: 14px; }
+.calendar-activity-controls select { min-height: 40px; padding: 8px; border: 1px solid #aecbb8; border-radius: 8px; background: white; color: #294d39; font: inherit; }
+.calendar-activity-total { display: grid; gap: 6px; margin: 0; color: #234b36; }
+.calendar-activity-total span { font-size: 13px; color: #385544; }
+.feed-sort-menu { grid-column: 2; grid-row: 1; align-self: center; position: relative; }
+.feed-sort-menu > summary { padding: 10px 14px; border: 1px solid #aecbb8; border-radius: 9px; background: white; color: #294d39; cursor: pointer; font-size: 14px; }
+.feed-sort-panel { position: absolute; z-index: 5; top: calc(100% + 8px); right: 0; width: min(310px, calc(100vw - 96px)); padding: 18px; display: grid; gap: 18px; border: 1px solid #aecbb8; border-radius: 12px; background: white; box-shadow: 0 8px 28px #183e2826; }
+.feed-sort-panel label { font-size: 14px; }
+.feed-sort-panel output { color: #18583e; font-weight: 600; }
+.feed-sort-panel p { margin: 0; color: #385544; font-size: 13px; line-height: 1.6; }
+.main-feed-section .feed-sort-panel input[type="range"] { padding: 0; height: 28px; accent-color: #18583e; border: 0; }
+.feed-sort-menu summary:focus-visible, .period-toggle button:focus-visible { outline: 2px solid #267650; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .learner-edit-fields { grid-template-columns: minmax(0, 1fr); }
+  .learner-skill-editor { justify-self: end; width: min(100%, 220px); }
+  .feed-sort-menu { grid-column: 1; grid-row: 3; }
+  .feed-sort-panel { position: static; box-sizing: border-box; width: 100%; margin-top: 10px; box-shadow: none; }
+  .profile-feed-view .inline-editor-box { padding: 16px; }
+}

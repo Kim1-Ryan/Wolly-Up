@@ -3,15 +3,15 @@ import InlineFeedback from "./InlineFeedback";
 import React, { useState, useEffect } from "react";
 
 const LESSON_CATEGORIES = [
+  { value: "junior_individual", label: "Junior Individual Lessons (60 mins)" },
   { value: "adult_individual", label: "Adult Individual Lessons (60 mins)" },
-  { value: "adult_group", label: "Adult Group Lessons (3–6 people)" },
-  { value: "junior_individual", label: "Junior Individual Lessons (60 mins)" }
+  { value: "adult_group", label: "Adult Group Lessons (3–6 people)" }
 ];
 
 const PACKAGE_OPTIONS = [
-  { value: "single", label: "Single session (1 lesson)" },
-  { value: "pack_5", label: "5-lesson pack (3-month expiry)" },
-  { value: "pack_10", label: "10-lesson pack (3-month expiry)" }
+  { value: "single", label: "1 lesson" },
+  { value: "pack_5", label: "5 lessons (3-month validity)" },
+  { value: "pack_10", label: "10 lessons (3-month validity)" }
 ];
 
 const RATE_OPTIONS = LESSON_CATEGORIES.flatMap((category) =>

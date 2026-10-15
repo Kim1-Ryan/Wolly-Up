@@ -18,6 +18,8 @@ import LearnerProfile from "./LearnerProfile";
 import CreatePost from "./CreatePost";
 import Post from "./Post";
 import TokenWallet from './TokenWallet';
+import LoadingSpinner from './LoadingSpinner';
+import './ProfileExperience.css';
 
 function App() {
   const updateVerification = useCallback(isVerified => setCurrentUser(prev => prev ? { ...prev, isVerified } : prev), []);
@@ -42,6 +44,7 @@ function App() {
   const scrolledNotification = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [maxBudget, setMaxBudget] = useState(null);
   const [profileSearch, setProfileSearch] = useState({ query: "", profiles: [], status: "idle" });
   const query = searchTerm.trim();
   const [searchType,setSearchType]=useState('all');
@@ -282,6 +285,8 @@ function App() {
     setApiSession(null);
     setFeedback("");
     setSearchTerm("");
+    setMaxBudget(null);
+    setTokenWallet(null);
     setProfileSearch({ query: "", profiles: [], status: "idle" });
     setBookings([]);
     setChatRooms([]);
@@ -410,7 +415,7 @@ function App() {
     return <div className="app-container">
       <Header isLoggedIn={false} />
       <main className="main-content">
-        <p role="status">{sessionError || 'Restoring your session…'}</p>
+        {sessionError ? <p role="status">{sessionError}</p> : <LoadingSpinner page label="Restoring your session"/>}
         {sessionError && <button type="button" className="btn-primary" onClick={() => { setSessionError(''); setSessionAttempt(attempt => attempt + 1); }}>Try again</button>}
       </main>
       <Footer />
@@ -433,6 +438,7 @@ function App() {
 
   const feedPosts = posts
     .filter(post => !post.status || post.status === 'active')
+    .filter(post => maxBudget === null || (Number(post.price) > 0 && Number(post.price) <= maxBudget))
     .filter((postItem) => (
       postItem.title.toLowerCase().includes(query.toLowerCase()) ||
       postItem.content.toLowerCase().includes(query.toLowerCase())
@@ -440,8 +446,11 @@ function App() {
     .sort((firstPost, secondPost) => {
       if (sortBy === "oldest") return Date.parse(firstPost.createdAt) - Date.parse(secondPost.createdAt);
       if (sortBy === "title") return firstPost.title.localeCompare(secondPost.title);
+      if (sortBy === "price-low") return Number(firstPost.price) - Number(secondPost.price);
+      if (sortBy === "price-high") return Number(secondPost.price) - Number(firstPost.price);
       return Date.parse(secondPost.createdAt) - Date.parse(firstPost.createdAt);
     });
+  const budgetCeiling = Math.max(10000, Math.ceil(Math.max(0,...posts.map(post=>Number(post.price)||0)) / 100) * 100);
 
   function renderListings(listings) {
     return (
@@ -580,7 +589,7 @@ function App() {
               </div>
               <span className="listing-count">{searchType==='profiles' ? (query && profileSearch.query===query && profileSearch.status==='ready' ? `${profileSearch.profiles.length} profiles` : 'Profiles') : `${feedPosts.length} ${feedPosts.length===1?'listing':'listings'}`}</span>
             </div>
-            {currentUser.role==='coach'&&<TokenWallet user={currentUser} onWalletChange={setTokenWallet}/>}
+            <TokenWallet user={currentUser} onWalletChange={setTokenWallet}/>
 
             <details className="feed-composer"><summary>＋ Create a listing</summary><CreatePost wallet={tokenWallet} user={currentUser} activeCount={posts.filter(p=>p.authorId===currentUser.id && (!p.status||p.status==='active')).length} onAdd={addPost} /></details>
 
@@ -599,17 +608,19 @@ function App() {
                 }}
                 className="search-input"
               /></div></label>
-              {searchType!=='profiles'&&<label className="feed-sort"><span>Sort by</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort listings">
+              {searchType!=='profiles'&&<details className="feed-sort-menu"><summary>Sort & budget{maxBudget!==null?' · 1 filter':''}</summary><div className="feed-sort-panel"><label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort listings">
                 <option value="newest">Newest first</option>
                 <option value="oldest">Oldest first</option>
                 <option value="title">Title A–Z</option>
-              </select></label>}
+                <option value="price-low">Price: low to high</option>
+                <option value="price-high">Price: high to low</option>
+              </select></label><label>Maximum budget<output>{maxBudget===null?'Any budget':`R${maxBudget.toLocaleString('en-ZA')}`}</output><input type="range" min="0" max={budgetCeiling} step="50" value={maxBudget ?? budgetCeiling} aria-label="Maximum listing budget" aria-valuetext={maxBudget===null?'Any budget':`${maxBudget} rand`} onChange={e=>setMaxBudget(Number(e.target.value)===budgetCeiling?null:Number(e.target.value))}/></label><p>Filters listing prices and learner budgets. Listings without a stated amount are hidden while a budget is selected.</p><button type="button" className="btn-secondary" onClick={()=>{setMaxBudget(null);setSortBy('newest');}}>Reset filters</button></div></details>}
             </div>
 
             {searchType!=='listings' && (
               <section className="profile-search-results" aria-live="polite">
                 <h3>{currentUser.role==='learner'?'Coaches':'Learners'}</h3>
-                {profileSearch.query !== query || profileSearch.status==='idle' ? <p>Loading profiles…</p> :
+                {profileSearch.query !== query || profileSearch.status==='idle' ? <LoadingSpinner label="Loading profiles"/> :
                   profileSearch.status === "error" ? <p role="alert">Unable to search profiles. Please try again.</p> : (
                     <>
                       <p>{profileSearch.profiles.length} profile{profileSearch.profiles.length === 1 ? "" : "s"} · Showing the best-rated profiles first</p>
@@ -651,7 +662,6 @@ function App() {
                     <p>Learner{selectedCoachForView.location ? ` · ${selectedCoachForView.location}` : ""}</p>
                     <LearnerRating user={selectedCoachForView} />
                     <p>{selectedCoachForView.bio}</p>
-                    <ProfileReviews user={selectedCoachForView} />
                     <button className="btn-primary" onClick={() => handleInitializeSecureChat(selectedCoachForView.id, selectedCoachForView.name)}>Message learner</button>
                   </section>
                 ) : <CoachProfile
@@ -687,7 +697,7 @@ function App() {
             )}
 
             <section className="personal-listings-section">
-              {!selectedCoachForView&&currentUser.role==='coach'&&<TokenWallet user={currentUser} onWalletChange={setTokenWallet}/>}
+              {!selectedCoachForView&&<TokenWallet user={currentUser} onWalletChange={setTokenWallet}/>}
               <div className="personal-listings-heading">
                 <div>
                   <h3>{selectedCoachForView ? `${selectedCoachForView.name}'s listings` : "Your listings"}</h3>
@@ -702,6 +712,7 @@ function App() {
               </div>}
             </section>
             {!selectedCoachForView&&<details className="personal-listings-section listing-history"><summary>Listing history <span className="profile-listings-count">{listingHistory.length}</span></summary><p>Expired and removed listings. These are no longer visible in the feed.</p>{listingHistory.length?renderListings([...listingHistory].sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt))):<p>No past listings yet.</p>}</details>}
+            {(selectedCoachForView || currentUser).role==='learner'&&<ProfileReviews user={selectedCoachForView || currentUser}/>}
           </div>
         )}
       </main>

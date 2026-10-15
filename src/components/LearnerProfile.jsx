@@ -1,6 +1,5 @@
 import { apiFetch } from '../api';
 import BookingList from "./BookingList";
-import ProfileReviews from "./ProfileReviews";
 import LearnerRating from "./LearnerRating";
 import ProfileAvatar from "./ProfileAvatar";
 import InlineFeedback from "./InlineFeedback";
@@ -78,12 +77,12 @@ function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onM
         {isEditing ? (
           <div className="inline-editor-box full-width-editor">
             <div className="learner-photo-editor"><label>Profile photo (optional)<input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" disabled={saving} onChange={e=>setEditPhoto(e.target.files[0] || null)}/></label><p>JPG, PNG or WebP, up to 5 MB. Without a photo, your initials are displayed.</p></div>
-            <textarea value={editBio} onChange={function(e) { setEditBio(e.target.value); }} className="edit-textarea" />
-            <select value={editExpertise} onChange={function(e) { setEditExpertise(e.target.value); }} className="filter-select" style={{ margin: "10px 0", display: "block" }}>
+            <div className="learner-edit-fields"><label>About you<textarea value={editBio} onChange={function(e) { setEditBio(e.target.value); }} className="edit-textarea" /></label>
+            <label className="learner-skill-editor">Skill level<select value={editExpertise} onChange={function(e) { setEditExpertise(e.target.value); }} className="filter-select">
               <option value="beginner">Beginner</option>
               <option value="intermediate">Intermediate</option>
               <option value="advanced">Advanced</option>
-            </select>
+            </select></label></div>
             <div className="editor-controls">
               <button className="btn-primary" disabled={saving} onClick={handleSaveEdits}>{saving?'Saving…':'Save changes'}</button>
               <button className="btn-secondary" disabled={saving} onClick={function() { setIsEditing(false); setEditPhoto(null); }}>Cancel</button>
@@ -132,7 +131,6 @@ function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onM
         </div>
       )}
 
-      <ProfileReviews user={user} />
       <BookingList key={bookingTarget?.key || 'bookings'} initialBookingId={bookingTarget?.target_id} bookings={bookings} user={user} onChanged={onBookingChanged} onMessageInit={onMessageInit} onCheckout={setActivePaymentBookingId} />
 
     </div>

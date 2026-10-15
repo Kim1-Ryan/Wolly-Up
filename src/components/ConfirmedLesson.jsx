@@ -1,11 +1,11 @@
-import React from "react";
+import { readablePackage } from '../packages';
 import VenueLinks from "./VenueLinks";
 
 export default function ConfirmedLesson({ booking, isCoach = false, onMessageInit }) {
   const name = isCoach ? booking.learnerName : booking.coachName;
   return <section style={{ background: "#edf6f0", border: "1px solid #c8dfcf", borderRadius: 12, padding: 20, marginTop: 16 }}>
     <strong style={{ color: "#215c3d" }}>✓ Booking confirmed — ready for your lesson</strong>
-    <p>{booking.package} with {name}</p>
+    <p>{readablePackage(booking.package)}</p>
     <ul>{(booking.sessions || []).map((session, index) => <li key={`${session.date}-${session.time}`}>
       Lesson {index + 1}: {new Date(`${session.date}T${session.time}`).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })} at {session.time}{session.endTime ? `–${session.endTime}` : ""}
     </li>)}</ul>

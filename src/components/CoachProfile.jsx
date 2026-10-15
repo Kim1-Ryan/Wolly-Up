@@ -10,16 +10,18 @@ import MessageIcon from "@mui/icons-material/Message";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import "./BookingCalendar.css";
 import "./PackageEditor.css";
+import LoadingSpinner from './LoadingSpinner';
+import { packageLabel, packageValidity, sortOffers } from '../packages';
 
 const LESSON_CATEGORIES = [
+  { value: "junior_individual", label: "Junior Individual Lessons" },
   { value: "adult_individual", label: "Adult Individual Lessons (60 mins)" },
-  { value: "adult_group", label: "Adult Group Lessons (3-6 people)" },
-  { value: "junior_individual", label: "Junior Individual Lessons (60 mins)" }
+  { value: "adult_group", label: "Adult Group Lessons (3-6 people)" }
 ];
 const PACKAGE_OPTIONS = [
-  { value: "single", label: "Single session (1 lesson)" },
-  { value: "pack_5", label: "5-lesson pack (3-month expiry)" },
-  { value: "pack_10", label: "10-lesson pack (3-month expiry)" }
+  { value: "single", label: "1 lesson" },
+  { value: "pack_5", label: "5 lessons (3-month validity)" },
+  { value: "pack_10", label: "10 lessons (3-month validity)" }
 ];
 const RATE_OPTIONS = LESSON_CATEGORIES.flatMap((category) => PACKAGE_OPTIONS.map((pack) => ({
   id: `${category.value}_${pack.value}`,
@@ -39,6 +41,9 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
   const [feedback, setFeedback] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [tallyPeriod, setTallyPeriod] = useState('month');
+  const [tallyMonth, setTallyMonth] = useState(new Date().getMonth());
   const photoInputRef = useRef(null);
   const focusPhotoOnOpen = useRef(false);
   function focusPhotoInput() {
@@ -91,9 +96,9 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
   const currentYear = new Date().getFullYear();
   const [calendarYear, setCalendarYear] = useState(currentYear);
   const rawRates = user.ratesStructure?.offerings || (user.ratesStructure ? [user.ratesStructure] : []);
-  const offeredRates = Array.isArray(rawRates)
+  const offeredRates = sortOffers(Array.isArray(rawRates)
     ? rawRates.filter((offering) => offering?.category && offering?.packSize)
-    : [];
+    : []);
   const selectedRate = offeredRates.find((rate) => `${rate.category}-${rate.packSize}` === selectedPackage);
   const requiredLessons = { single: 1, pack_5: 5, pack_10: 10 }[selectedRate?.packSize] || 0;
   const today = new Date().toLocaleDateString('en-CA');
@@ -111,6 +116,10 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
       .filter((booking) => booking.status === "booking_confirmed_and_paid")
       .flatMap((booking) => (booking.sessions || [booking]).map((session) => session.date))]
   );
+  const tallyPrefix = tallyPeriod === 'month' ? `${calendarYear}-${String(tallyMonth + 1).padStart(2, '0')}` : String(calendarYear);
+  const tallyBookings = bookings.filter(booking => booking.status === 'booking_confirmed_and_paid' && (booking.sessions || [booking]).some(session => session.date?.startsWith(tallyPrefix)));
+  const tallyLessons = tallyBookings.reduce((total, booking) => total + (booking.sessions || [booking]).filter(session => session.date?.startsWith(tallyPrefix)).length, 0);
+  const tallyDays = [...confirmedBookingDates].filter(date => date.startsWith(tallyPrefix)).length;
   const firstDayOffset = new Date(calendarYear, 0, 1).getDay();
   const daysInCalendarYear = Math.round(
     (new Date(calendarYear + 1, 0, 1) - new Date(calendarYear, 0, 1)) / 86_400_000
@@ -161,6 +170,9 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
   }
 
   async function handleSaveEdits() {
+    if (saving) return;
+    setSaving(true);
+    try {
     if (!editTitle.trim() || editTitle.trim().length > 120) {
       setFeedback('Enter a professional title of up to 120 characters.');
       return;
@@ -203,6 +215,8 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
     }
     onUpdateProfile(profile);
     setIsEditing(false);
+    } catch (error) { setFeedback(error.message || 'Unable to save your profile. Please try again.'); }
+    finally { setSaving(false); }
   }
 
   function selectPackage(offering) {
@@ -263,7 +277,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
       coachName: user.name,
       sessions: [...sessions].sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`)),
       rate: selectedRate.formattedRate,
-      package: selectedRate.category.replace(/_/g, " ") + " (" + selectedRate.packSize.replace(/_/g, " ") + ")"
+      package: selectedRate.category.replace(/_/g, " ") + " (" + packageLabel(selectedRate.packSize) + ")"
     });
     if (!saved) return;
     setSessions([]);
@@ -305,13 +319,14 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
 
           {isOwnProfile ? (
             isEditing ? (
-              <div className="inline-editor-box">
+              <fieldset className="inline-editor-box profile-edit-form" disabled={saving}>
+                <legend>Edit profile</legend>
                 <label className="coach-title-editor">Professional title<input type="text" value={editTitle} maxLength={120} required placeholder="e.g. PGA golf coach" onChange={e=>setEditTitle(e.target.value)} /></label>
-                <textarea value={editBio} onChange={function(e) { setEditBio(e.target.value); }} className="edit-textarea" />
+                <label>About you<textarea value={editBio} onChange={function(e) { setEditBio(e.target.value); }} className="edit-textarea" /></label>
                 <div className="coach-photo-requirement">
-                  <h4>Profile photo</h4>
+                  <h4 id="coach-photo-heading">Profile photo</h4>
                   <p>{user.profileImage ? "Choose a new image to replace your current profile photo." : "Upload a clear photo of yourself for your profile."}</p>
-                  <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setEditProfilePhoto(e.target.files[0] || null)} />
+                  <input ref={photoInputRef} type="file" aria-labelledby="coach-photo-heading" accept="image/jpeg,image/png,image/webp" onChange={(e) => setEditProfilePhoto(e.target.files[0] || null)} />
                 </div>
                 <div className="rate-template-builder-box coach-package-editor">
                   <h4>Packages and lesson rates</h4>
@@ -325,7 +340,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                         <div className={`rate-option-row${isSelected ? " has-rate" : ""}`} key={option.id}>
                           <label className="package-editor-toggle">
                             <input type="checkbox" checked={isSelected} onChange={() => toggleRateOption(option.id)} />
-                            <span><strong>{option.packSize==='single'?'Single lesson':option.packSize==='pack_5'?'5-lesson pack':'10-lesson pack'}</strong><small>{option.packSize==='single'?'1 lesson':'Valid for 3 months'}</small></span>
+                            <span><strong>{packageLabel(option.packSize)}</strong><small>{option.packSize==='single'?'One session':'Valid for 3 months'}</small></span>
                           </label>
                           {isSelected && <div className="package-editor-fields">
                             <label>Total price (ZAR)<input type="number" min="0" step="0.01" placeholder="e.g. 600" aria-label={`${option.label} total price in ZAR`} value={editableRates[option.id]} onChange={(e) => setEditableRates((previous) => ({ ...previous, [option.id]: e.target.value }))} /></label>
@@ -338,10 +353,10 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                   </section>)}
                 </div>
                 <div className="editor-controls">
-                  <button className="btn-primary" onClick={handleSaveEdits}>Commit Changes</button>
+                  <button className="btn-primary" onClick={handleSaveEdits}>{saving?'Saving…':'Save changes'}</button>
                   <button className="btn-secondary" onClick={function() { setIsEditing(false); }}>Cancel</button>
                 </div>
-              </div>
+              </fieldset>
             ) : (
               <div className="bio-display-row">
                 <p className="coach-bio-paragraph">{user.bio}</p>
@@ -356,7 +371,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
 
       <div className="profile-split-row">
         <div className="rates-packages-block">
-          <h3>Customized Packages and Lesson Rates</h3>
+          <h3>Lesson packages</h3>
           {offeredRates.length > 0 ? (
             <div className="package-rates-grid">
               {offeredRates.map((offering) => (
@@ -365,8 +380,9 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                     <h4>{offering.category.replace(/_/g, " · ").toUpperCase()}</h4>
                   </div>
                   <div className="matrix-tier-body">
-                    <span className="pack-size-label">{offering.packSize.replace(/_/g, " ").toUpperCase()}</span>
+                    <span className="pack-size-label">{packageLabel(offering.packSize)}</span>
                     <p className="price-tag-large">{offering.formattedRate}</p><p>{offering.durationMinutes ? `${offering.durationMinutes} minutes per lesson` : "Lesson duration awaiting coach confirmation"}</p>
+                    {packageValidity(offering.packSize)&&<p className="package-validity">{packageValidity(offering.packSize)}</p>}
                     {!isOwnProfile && (
                       <button type="button" className="btn-primary package-select-button"
                         disabled={requesting}
@@ -402,21 +418,28 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                 <li className={selectedRate && sessions.length < requiredLessons ? 'is-current' : ''}><span>2</span> Add lesson dates</li>
                 <li className={requiredLessons && sessions.length === requiredLessons ? 'is-current' : ''}><span>3</span> Review & request</li>
               </ol>}
-            {availabilityReady && <span className="calendar-booked-days">{[...confirmedBookingDates].filter(d => d.startsWith(String(calendarYear))).length} booked {confirmedBookingDates.size === 1 ? 'day' : 'days'} in {calendarYear}</span>}
+            {!isOwnProfile && availabilityReady && <span className="calendar-booked-days">{[...confirmedBookingDates].filter(d => d.startsWith(String(calendarYear))).length} booked days in {calendarYear}</span>}
             </div>
+            {isOwnProfile && <div className="calendar-activity" aria-label="Confirmed booking activity">
+              <div className="calendar-activity-controls"><div className="period-toggle" role="group" aria-label="Booking tally period">
+                {['month','year'].map(period=><button type="button" key={period} aria-pressed={tallyPeriod===period} onClick={()=>setTallyPeriod(period)}>{period==='month'?'Month':'Year'}</button>)}
+              </div>{tallyPeriod==='month'&&<label>Month<select value={tallyMonth} onChange={e=>setTallyMonth(Number(e.target.value))}>{Array.from({length:12},(_,month)=><option key={month} value={month}>{new Date(calendarYear,month,1).toLocaleString('en-ZA',{month:'long'})}</option>)}</select></label>}</div>
+              <p className="calendar-activity-total" aria-live="polite"><strong>{tallyBookings.length} {tallyBookings.length===1?'booking':'bookings'} · {tallyLessons} {tallyLessons===1?'lesson':'lessons'}</strong><span>{tallyDays} booked {tallyDays===1?'day':'days'} · {tallyPeriod==='month'?new Date(calendarYear,tallyMonth,1).toLocaleString('en-ZA',{month:'long',year:'numeric'}):calendarYear}</span></p>
+            </div>}
             {!isOwnProfile && <>
               <label className="booking-package-picker">Your package
                 <select value={selectedPackage} disabled={requesting} onChange={e => { const offer = offeredRates.find(r => `${r.category}-${r.packSize}` === e.target.value); if (offer) selectPackage(offer); }}>
                   <option value="" disabled>Choose a lesson package</option>
-                  {offeredRates.map(r => <option key={`${r.category}-${r.packSize}`} value={`${r.category}-${r.packSize}`}>{r.category.replaceAll('_', ' ')} · {r.packSize.replaceAll('_', ' ')} · {r.formattedRate}</option>)}
+                  {offeredRates.map(r => <option key={`${r.category}-${r.packSize}`} value={`${r.category}-${r.packSize}`}>{r.category.replaceAll('_', ' ')} · {packageLabel(r.packSize)} · {r.formattedRate}</option>)}
                 </select>
                 {selectedRate && <small>{selectedRate.durationMinutes ? `${selectedRate.durationMinutes} minutes per lesson` : 'Awaiting lesson duration from coach'} · {requiredLessons} {requiredLessons === 1 ? 'lesson' : 'lessons'}</small>}
                 {selectedRate && <small>Request your dates, then pay after coach approval.</small>}
+                {selectedRate && packageValidity(selectedRate.packSize) && <small className="package-validity">{packageValidity(selectedRate.packSize)}</small>}
               </label>
               {requestSent && <p className="booking-success" role="status">✓ Request sent. Your coach will review your dates. You can pay once they approve.</p>}
             </>}
             <div className="booking-calendar-legend"><span><i className="legend-open" /> Available</span><span><i className="legend-booked" /> Booked</span>{!isOwnProfile && <span><i className="legend-selected" /> Your selection</span>}</div>
-            {!availabilityReady && <p role="status">{availability.coachId === user.id && availability.status === 'error' ? 'Unable to load availability. Retrying shortly…' : 'Loading coach availability…'}</p>}
+            {!availabilityReady && (availability.coachId === user.id && availability.status === 'error' ? <p role="status">Unable to load availability. Retrying shortly…</p> : <LoadingSpinner label="Loading coach availability"/>)}
 
             <div className="calendar-heatmap-layout">
               <div className="calendar-grid-scroll">
@@ -496,6 +519,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                 </ol>}
 
                 <div className="booking-total"><span>Package total</span><strong>{selectedRate?.formattedRate || '—'}</strong></div>
+                {selectedRate && packageValidity(selectedRate.packSize) && <p className="package-validity">{packageValidity(selectedRate.packSize)}</p>}
                 <p className="booking-next-step">{selectedRate && sessions.length < requiredLessons ? `Add ${requiredLessons - sessions.length} more ${requiredLessons - sessions.length === 1 ? 'lesson' : 'lessons'} to continue.` : 'Your coach approves the dates before payment.'}</p>
                 <div className="action-buttons-row">
                   <button className="btn-primary" disabled={requesting || !availabilityReady || !selectedRate?.durationMinutes || !requiredLessons || sessions.length !== requiredLessons} onClick={handleTriggerBookingRequest}>{requesting ? 'Sending request…' : 'Request booking'}</button>

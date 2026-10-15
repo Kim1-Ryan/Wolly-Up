@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS token_transactions (
 );
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS tokens_spent INTEGER NOT NULL DEFAULT 0;`;
 
-export const listingTokenCost = count => count === 0 ? 10 : 20;
+export const listingTokenCost = (count, role = 'coach') => role === 'learner' ? (count === 0 ? 5 : 10) : (count === 0 ? 10 : 20);
 export const tokenBundles = [10,20,50,100].map(tokens=>({tokens,priceCents:tokens*500}));
 export const validTokenAmount = tokens => Number.isSafeInteger(tokens) && tokens > 0 && Number.isSafeInteger(tokens*500);
 
@@ -33,9 +33,9 @@ export async function handleTokens(request,response,url,pool,readBody,sendJson) 
   const userId=await sessionUser(request,pool);
   if(!userId){sendJson(response,401,{error:'Please sign in again to access your token wallet.'});return true;}
   const profile=(await pool.query('SELECT role,token_balance,paid_listing_count FROM profiles WHERE id=$1',[userId])).rows[0];
-  if(profile?.role!=='coach'){sendJson(response,403,{error:'Token wallets are for coach accounts.'});return true;}
+  if(!['coach','learner'].includes(profile?.role)){sendJson(response,403,{error:'A coach or learner account is required.'});return true;}
   if(url.pathname==='/api/tokens'&&request.method==='GET') {
-    sendJson(response,200,{balance:profile.token_balance,nextListingCost:listingTokenCost(profile.paid_listing_count),bundles:tokenBundles,pricePerTokenCents:500,checkoutAvailable:false});return true;
+    sendJson(response,200,{balance:profile.token_balance,nextListingCost:listingTokenCost(profile.paid_listing_count,profile.role),normalListingCost:profile.role==='learner'?10:20,firstListingCost:profile.role==='learner'?5:10,bundles:tokenBundles,pricePerTokenCents:500,checkoutAvailable:false});return true;
   }
   if(url.pathname==='/api/tokens/checkout'&&request.method==='POST') {
     const {tokens}=await readBody(request);

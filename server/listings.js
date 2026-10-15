@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { listingTokenCost, sessionUser } from './tokens.js';
+import { packageLabel } from '../src/packages.js';
 
 export const listingSchema = `ALTER TABLE listings ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS offer JSONB;
@@ -19,6 +20,8 @@ export function offerTerms(data, regularPrice, now=Date.now()) {
   if(!data.isSpecial)return {expiresAt:null,specialPrice:null};
   const expiresAt=data.expiresAt ? new Date(data.expiresAt) : null;
   if (expiresAt && (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime()<=now)) throw new Error('Choose an expiry date and time in the future.');
+  const maxDays = data.extendSpecial === true ? 60 : 30;
+  if (expiresAt && expiresAt.getTime() > now + maxDays * 86400000) throw new Error(`Special offers can run for up to ${maxDays} days${maxDays === 30 ? '. Select the 10-token extension for up to 60 days' : ''}.`);
   const specialPrice=data.isSpecial ? Number(data.specialPrice) : null;
   if(data.isSpecial && (!expiresAt || !Number.isFinite(specialPrice) || specialPrice<=0 || specialPrice>=regularPrice)) throw new Error('A special needs an expiry and a price lower than the regular package price.');
   return {expiresAt:expiresAt?.toISOString() || null,specialPrice};
@@ -43,10 +46,11 @@ export async function handleListings(request,response,url,pool,readBody,sendJson
       const author=(await client.query('SELECT * FROM profiles WHERE id=$1 FOR UPDATE',[data.authorId])).rows[0];
       if (!author || !['coach','learner'].includes(author.role)) {await client.query('ROLLBACK');sendJson(response,400,{error:'A coach or learner account is required.'});return true;}
       let offer=null, status='active', title=data.title, price=Number(data.price || 0), expiresAt=null;
+      let learnerPaidListing = false;
       if (author.role==='learner') {
         const count=await client.query("SELECT COUNT(*)::int AS count FROM listings WHERE author_id=$1 AND status='active' AND (expires_at IS NULL OR expires_at>NOW())",[author.id]);
-        if(count.rows[0].count>=3){await client.query('ROLLBACK');sendJson(response,409,{error:'You can have up to 3 active listings. Remove one before creating another.'});return true;}
-        if(typeof title!=='string'||!title.trim()||title.length>150||!Number.isFinite(price)||price<0){await client.query('ROLLBACK');sendJson(response,400,{error:'Add a title and a valid optional coaching budget.'});return true;}
+        learnerPaidListing = count.rows[0].count >= 3;
+        if(typeof title!=='string'||!title.trim()||title.length>150||!Number.isFinite(price)||price<0){await client.query('ROLLBACK');sendJson(response,400,{error:'Add a title and a valid optional budget.'});return true;}
       } else {
         if(data.isSpecial===true && data.customOffer) {
           const custom=data.customOffer;
@@ -56,7 +60,7 @@ export async function handleListings(request,response,url,pool,readBody,sendJson
           offer={category:custom.category,packSize:custom.packSize,durationMinutes:custom.durationMinutes};
         } else offer=author.rates_structure?.offerings?.find(o=>o.category===data.category && o.packSize===data.packSize);
         if(!offer?.durationMinutes){await client.query('ROLLBACK');sendJson(response,400,{error:'Select one configured package with a lesson duration.'});return true;}
-        title=offer.category.replaceAll('_',' · ')+' · '+offer.packSize.replaceAll('_',' ');
+        title=offer.category.replaceAll('_',' · ')+' · '+packageLabel(offer.packSize);
         price=offer.formattedRate?Number(offer.formattedRate.replace(/[^0-9.]/g,'')):Infinity;
         status='active';
       }
@@ -69,7 +73,8 @@ export async function handleListings(request,response,url,pool,readBody,sendJson
         }
       } catch(error) {await client.query('ROLLBACK');sendJson(response,400,{error:error.message});return true;}
       const id=randomUUID();
-      const tokenCost=author.role==='coach'?listingTokenCost(author.paid_listing_count):0;
+      const extensionCost = author.role === 'coach' && data.isSpecial === true && data.extendSpecial === true ? 10 : 0;
+      const tokenCost=(author.role==='coach' || learnerPaidListing ? listingTokenCost(author.paid_listing_count,author.role) : 0) + extensionCost;
       if(tokenCost) {
         if(data.expectedTokenCost!==tokenCost){await client.query('ROLLBACK');sendJson(response,409,{error:`The publishing cost is now ${tokenCost} tokens. Review the updated price before publishing.`});return true;}
         if(author.token_balance<tokenCost){await client.query('ROLLBACK');sendJson(response,402,{error:`This listing costs ${tokenCost} tokens. Purchase tokens to publish.`,requiredTokens:tokenCost,balance:author.token_balance});return true;}
