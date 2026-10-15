@@ -44,7 +44,7 @@ export async function handleListings(request,response,url,pool,readBody,sendJson
     try {
       await client.query('BEGIN');
       const author=(await client.query('SELECT * FROM profiles WHERE id=$1 FOR UPDATE',[data.authorId])).rows[0];
-      if (!author || !['coach','learner'].includes(author.role)) {await client.query('ROLLBACK');sendJson(response,400,{error:'A coach or learner account is required.'});return true;}
+      if (!author || author.deleted_at || !['coach','learner'].includes(author.role)) {await client.query('ROLLBACK');sendJson(response,400,{error:'An active coach or learner account is required.'});return true;}
       let offer=null, status='active', title=data.title, price=Number(data.price || 0), expiresAt=null;
       let learnerPaidListing = false;
       if (author.role==='learner') {

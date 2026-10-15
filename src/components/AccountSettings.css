@@ -1,0 +1,29 @@
+.account-settings { margin-top: 24px; }
+.referral-feature,.email-preferences,.account-deletion { padding: 24px; margin-top: 20px; border: 1px solid #aecbb8; border-radius: 14px; background: #f2f8f4; color: #294d39; }
+.account-settings h3 { margin: 0 0 12px; color: #234b36; font-size: 18px; }
+.account-settings p,.account-delete-dialog p,.email-unsubscribe-card p { font-size: 14px; line-height: 1.65; }
+.account-settings small,.account-note,.account-delete-dialog small { color: #385544; font-size: 13px; line-height: 1.6; }
+.account-settings label,.account-delete-dialog label { display: grid; gap: 10px; font-size: 14px; font-weight: 600; }
+.referral-link-row { display: flex; gap: 12px; margin-bottom: 10px; }
+.referral-link-row input,.account-delete-dialog textarea { box-sizing: border-box; min-width: 0; width: 100%; padding: 12px; background: white; color: #294d39; border: 1px solid #aecbb8; border-radius: 8px; font: inherit; font-weight: 400; }
+.referral-link-row button { flex-shrink: 0; }
+.account-settings .account-checkbox,.account-delete-dialog .account-checkbox { display: flex; align-items: flex-start; gap: 10px; font-weight: 400; line-height: 1.6; }
+.account-checkbox input { width: 18px; height: 18px; flex: 0 0 18px; margin: 2px 0 0; accent-color: #18583e; }
+.account-deletion { background: white; border-color: #dbb6b1; }
+.btn-delete-account { padding: 10px 16px; border: 1px solid #a43b31; border-radius: 22px; background: #a43b31; color: white; font: inherit; font-size: 14px; cursor: pointer; }
+.btn-delete-account:disabled { opacity: .5; cursor: not-allowed; }
+.account-delete-dialog { box-sizing: border-box; width: min(560px,calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; border: 0; border-radius: 16px; background: white; color: #294d39; }
+.account-delete-dialog::backdrop { background: rgb(0 0 0 / 65%); }
+.account-delete-dialog form { display: grid; gap: 18px; }
+.account-delete-dialog h3,.account-delete-dialog p { margin: 0; }
+.account-delete-dialog textarea { resize: vertical; }
+.account-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.account-settings input:focus-visible,.account-delete-dialog textarea:focus-visible,.btn-delete-account:focus-visible { outline: 2px solid #267650; outline-offset: 3px; }
+.email-unsubscribe-card { max-width: 560px; padding: 24px; margin: 32px auto; border: 1px solid #aecbb8; border-radius: 16px; background: #f2f8f4; color: #294d39; }
+.email-unsubscribe-card a { display: block; margin-top: 20px; color: #18583e; }
+.auth-card .signup-preferences { display: grid; gap: 16px; margin: 20px 0; color: #294d39; }
+.signup-preferences > label { display: grid; gap: 8px; font-size: 14px; }
+.signup-preferences .account-checkbox { display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; }
+.auth-card .signup-preferences input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; margin: 2px 0 0; }
+.signup-preferences p,.signup-preferences small { margin: 0; color: #385544; font-size: 13px; line-height: 1.6; }
+@media (max-width: 600px) { .referral-feature,.email-preferences,.account-deletion { padding: 18px; } .referral-link-row { flex-direction: column; } .referral-link-row button { align-self: flex-end; } }

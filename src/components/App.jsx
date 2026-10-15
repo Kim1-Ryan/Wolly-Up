@@ -20,6 +20,8 @@ import Post from "./Post";
 import TokenWallet from './TokenWallet';
 import LoadingSpinner from './LoadingSpinner';
 import './ProfileExperience.css';
+import AccountSettings from './AccountSettings';
+import EmailUnsubscribe from './EmailUnsubscribe';
 
 function App() {
   const updateVerification = useCallback(isVerified => setCurrentUser(prev => prev ? { ...prev, isVerified } : prev), []);
@@ -30,6 +32,7 @@ function App() {
   const [restoringSession, setRestoringSession] = useState(() => Boolean(getSavedSession()));
   const [sessionError, setSessionError] = useState('');
   const [sessionAttempt, setSessionAttempt] = useState(0);
+  const [unsubscribeToken] = useState(()=>new URLSearchParams(window.location.search).get('unsubscribe'));
   const [activeView, setActiveView] = useState("feed");
   const [selectedCoachForView, setSelectedCoachForView] = useState(null);
 
@@ -52,7 +55,7 @@ function App() {
   const listingHistory = posts.filter(post=>post.authorId===currentUser?.id && ['expired','archived'].includes(post.status));
   useEffect(() => {
     const token = getSavedSession();
-    if (!token) return;
+    if (!token || unsubscribeToken) return;
     let cancelled = false;
     async function restoreSession() {
       try {
@@ -75,7 +78,7 @@ function App() {
     }
     void restoreSession();
     return () => { cancelled = true; };
-  }, [sessionAttempt]);
+  }, [sessionAttempt, unsubscribeToken]);
   useEffect(() => {
     if(!currentUser?.id)return;
     let cancelled=false;
@@ -272,6 +275,7 @@ function App() {
     setApiSession(userProfileData.sessionToken);
     setCurrentUser(userProfileData);
     setIsLoggedIn(true);
+    if (userProfileData.referralRewarded) setFeedback('Welcome! Your 5 free referral tokens have been added to your wallet.');
     setSelectedCoachForView(null);
     setActiveView("feed");
     try {
@@ -409,6 +413,10 @@ function App() {
       if (bookingsResponse.ok) setBookings(await bookingsResponse.json());
       return true;
     } catch (error) { setFeedback(error.message); return false; }
+  }
+
+  if (unsubscribeToken) {
+    return <div className="app-container"><Header isLoggedIn={false}/><main className="main-content"><EmailUnsubscribe token={unsubscribeToken}/></main><Footer/></div>;
   }
 
   if (restoringSession) {
@@ -716,6 +724,7 @@ function App() {
             </section>
             {!selectedCoachForView&&<details className="personal-listings-section listing-history"><summary>Listing history <span className="profile-listings-count">{listingHistory.length}</span></summary><p>Expired and removed listings. These are no longer visible in the feed.</p>{listingHistory.length?renderListings([...listingHistory].sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt))):<p>No past listings yet.</p>}</details>}
             {(selectedCoachForView || currentUser).role==='learner'&&<ProfileReviews user={selectedCoachForView || currentUser}/>}
+            {!selectedCoachForView&&<AccountSettings user={currentUser} onDeleted={()=>{handleLogout();setFeedback('Your account has been deleted.');}}/>}
           </div>
         )}
       </main>

@@ -138,7 +138,7 @@ export async function handleBookings(request, response, url, pool, readBody, sen
         !s.date || !s.time || !Number.isFinite(Date.parse(`${s.date}T${s.time}`)) || Date.parse(`${s.date}T${s.time}`) <= Date.now())) {
       sendJson(response, 400, { error: "Select a package and valid future lesson times." }); return true;
     }
-    const profiles = await pool.query("SELECT id, role, rates_structure FROM profiles WHERE id = $1 OR id = $2", [data.learnerId, data.coachId]);
+    const profiles = await pool.query("SELECT id, role, rates_structure FROM profiles WHERE (id = $1 OR id = $2) AND deleted_at IS NULL", [data.learnerId, data.coachId]);
     if (!profiles.rows.some(p => p.id === data.learnerId && p.role === "learner") ||
       !profiles.rows.some(p => p.id === data.coachId && p.role === "coach")) {
       sendJson(response, 400, { error: "A learner and coach account are required." }); return true;

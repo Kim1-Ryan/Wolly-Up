@@ -1,6 +1,7 @@
 import { apiFetch } from '../api';
 import InlineFeedback from "./InlineFeedback";
 import { validityOptions, validityLabel } from '../packages';
+import './AccountSettings.css';
 import React, { useState, useEffect } from "react";
 
 const LESSON_CATEGORIES = [
@@ -27,7 +28,9 @@ const RATE_OPTIONS = LESSON_CATEGORIES.flatMap((category) =>
 function AuthForm({ onAuthSuccess }) {
   const [feedback, setFeedback] = useState("");
 
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoginMode, setIsLoginMode] = useState(()=>!new URLSearchParams(window.location.search).get('ref'));
+  const [referralCode,setReferralCode] = useState(()=>(new URLSearchParams(window.location.search).get('ref') || '').trim().toLowerCase());
+  const [marketingEmails,setMarketingEmails] = useState(false);
   const [role, setRole] = useState("");
 
   const [formData, setFormData] = useState({
@@ -267,7 +270,9 @@ function AuthForm({ onAuthSuccess }) {
           }))
         : [],
       profileImage,
-      profilePhotoConfirmed
+      profilePhotoConfirmed,
+      referralCode:referralCode.trim().toLowerCase() || undefined,
+      marketingEmails
     };
 
     const response = await apiFetch("/api/auth/register", {
@@ -494,6 +499,11 @@ function AuthForm({ onAuthSuccess }) {
             )}
 
             <div className="secure-verification-box"><h4>Identity verification</h4><p>After creating your account, verify your identity securely with Persona.</p></div>
+            <div className="signup-preferences">
+              <label>Referral code (optional)<input type="text" maxLength={32} value={referralCode} onChange={event=>setReferralCode(event.target.value)} placeholder="From a friend’s referral link"/><small>Sign up with a friend’s link to receive 5 free tokens. They earn 10 tokens.</small></label>
+              <label className="account-checkbox"><input type="checkbox" checked={marketingEmails} onChange={event=>setMarketingEmails(event.target.checked)}/> Email me offers, news and marketing updates.</label>
+              <p>Optional. Unsubscribe anytime from your profile or an email link. Important account, security, data and booking emails remain enabled.</p>
+            </div>
           </>
         )}
 

@@ -15,7 +15,7 @@ export const validTokenAmount = tokens => Number.isSafeInteger(tokens) && tokens
 export async function sessionUser(request,pool) {
   const token=request.headers?.authorization?.match(/^Bearer (.+)$/)?.[1];
   if(!token)return null;
-  return (await pool.query('SELECT user_id FROM account_sessions WHERE token_hash=$1 AND expires_at>NOW()',
+  return (await pool.query('SELECT s.user_id FROM account_sessions s JOIN profiles p ON p.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>NOW() AND p.deleted_at IS NULL',
     [createHash('sha256').update(token).digest('hex')])).rows[0]?.user_id || null;
 }
 
@@ -24,7 +24,7 @@ export async function sessionProfile(request, pool) {
   if (!token) return null;
   return (await pool.query(`SELECT p.* FROM account_sessions s
     JOIN profiles p ON p.id = s.user_id
-    WHERE s.token_hash = $1 AND s.expires_at > NOW()`,
+    WHERE s.token_hash = $1 AND s.expires_at > NOW() AND p.deleted_at IS NULL`,
     [createHash('sha256').update(token).digest('hex')])).rows[0] || null;
 }
 

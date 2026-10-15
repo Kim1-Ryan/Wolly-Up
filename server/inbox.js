@@ -66,8 +66,10 @@ export async function handleInbox(request, response, url, pool, readBody, sendJs
    const {userId,participantId}=await readBody(request);
    if(!userId || !participantId || userId===participantId) {sendJson(response,400,{error:"Select another account to message."});return true;}
    const [first,second]=[userId,participantId].sort();
-   const result=await pool.query(`INSERT INTO conversations (id,first_id,second_id) VALUES ($1,$2,$3)
+   const result=await pool.query(`INSERT INTO conversations (id,first_id,second_id)
+     SELECT $1,a.id,b.id FROM profiles a CROSS JOIN profiles b WHERE a.id=$2 AND b.id=$3 AND a.deleted_at IS NULL AND b.deleted_at IS NULL
      ON CONFLICT(first_id,second_id) DO UPDATE SET first_id=EXCLUDED.first_id RETURNING id`,[randomUUID(),first,second]);
+   if(!result.rowCount){sendJson(response,410,{error:'This account is no longer available for messages.'});return true;}
    sendJson(response,200,(await rooms(pool,userId)).find(r=>r.id===result.rows[0].id));return true;
  }
  const match=url.pathname.match(/^\/api\/conversations\/([^/]+)\/messages$/);
@@ -75,7 +77,8 @@ export async function handleInbox(request, response, url, pool, readBody, sendJs
    const {userId,text,location}=await readBody(request);
    if(!userId || typeof text!=="string" || !text.trim() || text.length>10000) {sendJson(response,400,{error:"Enter a message of up to 10,000 characters."});return true;}
    const inserted=await pool.query(`INSERT INTO messages (id,room_id,sender_id,text,location)
-     SELECT $1,id,$3,$4,$5 FROM conversations WHERE id=$2 AND (first_id=$3 OR second_id=$3) RETURNING id`,
+     SELECT $1,c.id,$3,$4,$5 FROM conversations c JOIN profiles a ON a.id=c.first_id JOIN profiles b ON b.id=c.second_id
+     WHERE c.id=$2 AND (c.first_id=$3 OR c.second_id=$3) AND a.deleted_at IS NULL AND b.deleted_at IS NULL RETURNING id`,
      [randomUUID(),match[1],userId,text.trim(),location ? JSON.stringify(location) : null]);
    if(!inserted.rowCount) {sendJson(response,403,{error:"Conversation unavailable."});return true;}
    sendJson(response,201,(await rooms(pool,userId)).find(r=>r.id===match[1]));return true;

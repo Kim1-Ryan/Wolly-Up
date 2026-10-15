@@ -44,6 +44,55 @@ Visit `/api/health` through the Vite URL to check the proxy and database connect
 - `npm run build` builds the frontend.
 - `npm run lint` runs ESLint.
 
+## Accounts, referrals and email
+
+Both account types have an **Earn free tokens** panel, marketing email preferences,
+and a confirmed account deletion form at the bottom of their own profile.
+Deletion requires a reason, revokes all sessions, removes email-list membership,
+redacts personal profile data and authored messages, archives listings and cancels
+active bookings. Shared booking and token records retain an anonymized account
+reference. Deletion reasons are stored separately without an account ID.
+
+Referral links use `?ref=<personal-code>`. An eligible new signup credits 10 tokens
+to the referrer and 5 to the new member in the same transaction as signup. The
+email hash in `referral_redemptions` prevents the same referred address earning
+repeated rewards after account deletion. Marketing consent is optional and off
+by default; `email_contacts` stores the email list and its current subscription
+state. Existing members are not automatically opted into marketing.
+
+Welcome emails are placed in a durable outbox on signup. Sending is disabled
+until a provider and verified sender address have been configured. A Resend
+adapter is included; if using it, set these **server-only** environment variables:
+
+```text
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=<private API key>
+EMAIL_FROM=Wolly Up <your-verified-sender@your-domain>
+PUBLIC_APP_URL=https://your-frontend-domain/
+```
+
+Include any frontend path in `PUBLIC_APP_URL`, for example `/Wolly-Up/` for a
+GitHub Pages deployment. Do not put the API key in a `VITE_` variable. Sender setup
+and API details: [Resend send-email documentation](https://resend.com/docs/api-reference/emails/send-email).
+
+The local API checks the queue every 30 seconds. In production the Netlify
+`email-delivery` scheduled function checks every minute and sends at most two
+messages per run to stay within its execution limit. Run `node scripts/send-emails.js`
+to process a batch manually. Unconfigured delivery leaves jobs pending. Failed
+jobs retry up to five times, then remain marked `failed` for investigation.
+Email sends have stable idempotency keys. For an intentional retry after resolving
+a failure, reset the affected job's status to `pending` and attempts to `0`.
+
+Use `queueEmail` in `server/mail.js` for future campaigns and account notifications.
+Marketing jobs check consent when queued and immediately before delivery; account
+and welcome jobs do not depend on marketing consent. Marketing emails include an
+unsubscribe link that opens a confirmation page and changes only marketing
+preferences. Deleted accounts are excluded from all delivery.
+
+New tables are protected by the same server-only Supabase permissions as the
+existing account tables. Apply the new Supabase migration when deploying through
+Supabase migrations; the API's normal initialization also applies the schema.
+
 ## Full app hosting (free plans)
 
 Use Netlify Free for the frontend and API, and Supabase Free for PostgreSQL. Neon is also compatible. The repository includes netlify.toml and a Netlify Function that runs the API. Free plans have usage limits; do not enable paid upgrades or automatic top-ups.

@@ -13,6 +13,8 @@ import { profileRatings, rankProfiles } from "./ratings.js";
 import { handleListings, listingSchema } from './listings.js';
 import { handleTokens, tokenSchema, sessionUser, sessionProfile } from './tokens.js';
 import { validPackageWindow, validityMonths } from '../src/packages.js';
+import { createAccount, handleAccount } from './accounts.js';
+import { processEmailQueue } from './mail.js';
 
 const port = process.env.PORT || 3002;
 const scrypt = promisify(scryptCallback);
@@ -75,7 +77,7 @@ export async function handleRequest(request, response) {
       sendJson(response, 200, await publicProfile(profile, false));
       return;
     }
-    const publicRoute=(request.method==='POST'&&['/api/auth/login','/api/auth/register'].includes(url.pathname)) ||
+    const publicRoute=(request.method==='POST'&&['/api/auth/login','/api/auth/register','/api/email/unsubscribe'].includes(url.pathname)) ||
       (request.method==='GET'&&(url.pathname==='/api/health'||url.pathname==='/api/profiles'||/^\/api\/profiles\/[^/]+\/ratings$/.test(url.pathname)||/^\/api\/coaches\/[^/]+\/availability$/.test(url.pathname)||(url.pathname==='/api/listings'&&!url.searchParams.get('userId'))));
     if(url.pathname.startsWith('/api/')&&!publicRoute) {
       const userId=await sessionUser(request,pool);
@@ -92,6 +94,7 @@ export async function handleRequest(request, response) {
         }
       }
     }
+    if (await handleAccount(request,response,url,pool,readBody,sendJson)) return;
     if (await handleTokens(request,response,url,pool,readBody,sendJson)) return;
     if (await handleListings(request,response,url,pool,readBody,sendJson)) return;
     if (await handleBookings(request, response, url, pool, readBody, sendJson)) return;
@@ -110,7 +113,7 @@ export async function handleRequest(request, response) {
         `SELECT id, name, role, location, bio, expertise, title, profile_image,
                 rates_structure, qualifications, is_verified, persona_status, persona_environment
          FROM profiles
-         WHERE ($1='' OR strpos(lower(concat_ws(' ', name, role, location, bio, expertise, title)), lower($1)) > 0)
+         WHERE deleted_at IS NULL AND ($1='' OR strpos(lower(concat_ws(' ', name, role, location, bio, expertise, title)), lower($1)) > 0)
            AND ($2::text IS NULL OR role=$2)
          ORDER BY lower(name), id`,
         [query,role]
@@ -121,8 +124,8 @@ export async function handleRequest(request, response) {
     if (request.method === "POST" && request.url === "/api/auth/register") {
       const data = await readBody(request);
       const email = data.email?.trim().toLowerCase();
-      if (!email) {
-        sendJson(response, 400, { error: "An email address is required." });
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        sendJson(response, 400, { error: "Enter a valid email address." });
         return;
       }
       const passwordHash = await hashPassword(data.password);
@@ -157,18 +160,14 @@ export async function handleRequest(request, response) {
           formattedRate: `R ${Number(rate).toFixed(2)}`
         }))
       } : null;
-      const result = await pool.query(
-        `INSERT INTO profiles
-          (id, name, email, password_hash, role, location, bio, age, expertise, title, profile_image, rates_structure, qualifications, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, FALSE)
-         RETURNING *`,
+      const account = await createAccount(pool,
         [
           randomUUID(), data.name, email, passwordHash, data.role,
           data.location, data.bio, data.age, data.expertise || null, data.title || null,
           profileImage, ratesStructure, JSON.stringify([])
-        ]
+        ], {referralCode:data.referralCode,marketingEmails:data.marketingEmails}
       );
-      sendJson(response, 201, { ...await publicProfile(result.rows[0]), sessionToken: await createSession(pool, result.rows[0].id) });
+      sendJson(response, 201, { ...await publicProfile(account.profile, false), sessionToken:account.sessionToken, referralRewarded:account.referralRewarded });
       return;
     }
 
@@ -245,7 +244,7 @@ export async function handleRequest(request, response) {
         sendJson(response, 400, { error: "An email address is required." });
         return;
       }
-      const result = await pool.query("SELECT * FROM profiles WHERE LOWER(email) = $1", [normalizedEmail]);
+      const result = await pool.query("SELECT * FROM profiles WHERE LOWER(email) = $1 AND deleted_at IS NULL", [normalizedEmail]);
       const profile = result.rows[0];
       if (!profile || !(await passwordMatches(password, profile.password_hash))) {
         sendJson(response, 401, { error: "Incorrect email or password." });
@@ -268,6 +267,7 @@ export async function handleRequest(request, response) {
     sendJson(response, 404, { error: "Not found" });
   } catch (error) {
     console.error(`API error for ${request.method} ${request.url}:`, error.message);
+    if (error.statusCode) {sendJson(response,error.statusCode,{error:error.message});return;}
     if (error.code === "23505") {
       sendJson(response, 409, { error: "An account already exists for that email." });
       return;
@@ -293,6 +293,7 @@ export async function prepareDatabase() {
   )`);
   await pool.query(listingSchema);
   await pool.query(tokenSchema);
+  await pool.query(await readFile(resolve('server/accounts-schema.sql'),'utf8'));
   if(process.env.DATABASE_PROVIDER==='supabase') {
     await pool.query(await readFile(resolve('server/supabase-security.sql'),'utf8'));
   }
@@ -300,6 +301,8 @@ export async function prepareDatabase() {
 
 async function startServer() {
   await prepareDatabase();
+  const mailTimer=setInterval(()=>{void processEmailQueue(pool).catch(()=>console.error('Email queue processing failed.'));},30000);
+  mailTimer.unref();
   const server=http.createServer(handleRequest);
   server.listen(port, () => {
     console.log(`Wolly Up API listening on http://localhost:${port}`);
