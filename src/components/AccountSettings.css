@@ -1,7 +1,9 @@
-.account-settings { margin-top: 24px; }
-.account-section { margin-top: 14px; border: 1px solid #aecbb8; border-radius: 14px; background: #f2f8f4; color: #294d39; }
+.account-settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 16px; margin-top: 24px; }
+.account-settings > :not(.account-section):not(dialog) { grid-column: 1 / -1; }
+.account-section { min-width: 0; border: 1px solid #aecbb8; border-radius: 14px; background: #f2f8f4; color: #294d39; }
 .account-section-summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; border-radius: 14px; cursor: pointer; list-style: none; }
 .account-section-summary::-webkit-details-marker { display: none; }
+.account-section-summary { box-sizing: border-box; min-height: 118px; }
 .account-summary-copy { display: grid; gap: 6px; min-width: 0; }
 .account-summary-copy > strong { color: #234b36; font-size: 17px; line-height: 1.4; }
 .account-section-chevron { width: 8px; height: 8px; flex: 0 0 8px; margin-right: 4px; border-right: 2px solid #315c43; border-bottom: 2px solid #315c43; transform: rotate(45deg); transition: transform .18s ease; }
@@ -11,7 +13,8 @@
 .account-section-content { display: grid; gap: 16px; padding: 20px 24px 24px; margin: 0; border-top: 1px solid #ccdfd2; }
 .account-section-content > p { margin: 0; overflow-wrap: anywhere; }
 .account-section-content > button { justify-self: end; }
-.account-section-content .referral-link-row { margin-bottom: 0; }
+.account-section-content .referral-link-row { flex-direction: column; margin-bottom: 0; }
+.account-section-content .referral-link-row button { align-self: flex-end; }
 .account-deletion > summary .account-summary-copy > strong { color: #94382f; }
 .account-deletion .account-section-chevron { border-color: #94382f; }
 .account-deletion > summary:hover { background: #fff5f3; }
@@ -41,5 +44,6 @@
 .signup-preferences .account-checkbox { display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; }
 .auth-card .signup-preferences input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; margin: 2px 0 0; }
 .signup-preferences p,.signup-preferences small { margin: 0; color: #385544; font-size: 13px; line-height: 1.6; }
+@media (max-width: 900px) { .account-settings { grid-template-columns: minmax(0, 1fr); } .account-section-summary { min-height: 0; } }
 @media (max-width: 600px) { .account-section-summary { padding: 18px; gap: 14px; } .account-section-content { padding: 18px; } .referral-link-row { flex-direction: column; } .referral-link-row button { align-self: flex-end; } }
 @media (prefers-reduced-motion: reduce) { .account-section-chevron { transition: none; } }
