@@ -4,13 +4,29 @@ import ProfileReviews from "./ProfileReviews";
 import LearnerRating from "./LearnerRating";
 import ProfileAvatar from "./ProfileAvatar";
 import InlineFeedback from "./InlineFeedback";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onMessageInit, onBookingChanged, bookingTarget }) {
   const [feedback, setFeedback] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
+  const photoInputRef = useRef(null);
+  const focusPhotoOnOpen = useRef(false);
+  function focusPhotoInput() {
+    photoInputRef.current?.scrollIntoView({ block: 'center' });
+    photoInputRef.current?.focus({ preventScroll: true });
+  }
+  function editProfilePicture() {
+    if (isEditing) focusPhotoInput();
+    else { focusPhotoOnOpen.current = true; setIsEditing(true); }
+  }
+  useLayoutEffect(() => {
+    if (isEditing && focusPhotoOnOpen.current) {
+      focusPhotoOnOpen.current = false;
+      focusPhotoInput();
+    }
+  }, [isEditing]);
   const [editBio, setEditBio] = useState(user.bio);
   const [editExpertise, setEditExpertise] = useState(user.expertise);
   const [activePaymentBookingId, setActivePaymentBookingId] = useState(null);
@@ -44,7 +60,7 @@ function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onM
       <InlineFeedback message={feedback} onDismiss={() => setFeedback("")} />
       <div className="profile-header-card learner-card-mods">
         <div className="profile-title-row learner-name-row">
-          <div className="learner-name-identity"><ProfileAvatar user={user} isOwnProfile onEdit={() => setIsEditing(true)}/>
+          <div className="learner-name-identity"><ProfileAvatar user={user} isOwnProfile onEdit={editProfilePicture}/>
             <h2>
               {user.name}
               {user.isVerified && <CheckCircleIcon className="verified-check" titleAccess="Verified profile" />}
@@ -61,7 +77,7 @@ function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onM
 
         {isEditing ? (
           <div className="inline-editor-box full-width-editor">
-            <div className="learner-photo-editor"><label>Profile photo (optional)<input type="file" accept="image/jpeg,image/png,image/webp" disabled={saving} onChange={e=>setEditPhoto(e.target.files[0] || null)}/></label><p>JPG, PNG or WebP, up to 5 MB. Without a photo, your initials are displayed.</p></div>
+            <div className="learner-photo-editor"><label>Profile photo (optional)<input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" disabled={saving} onChange={e=>setEditPhoto(e.target.files[0] || null)}/></label><p>JPG, PNG or WebP, up to 5 MB. Without a photo, your initials are displayed.</p></div>
             <textarea value={editBio} onChange={function(e) { setEditBio(e.target.value); }} className="edit-textarea" />
             <select value={editExpertise} onChange={function(e) { setEditExpertise(e.target.value); }} className="filter-select" style={{ margin: "10px 0", display: "block" }}>
               <option value="beginner">Beginner</option>

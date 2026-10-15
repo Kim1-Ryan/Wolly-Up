@@ -3,7 +3,7 @@ import BookingList from "./BookingList";
 import ProfileReviews from "./ProfileReviews";
 import ProfileAvatar from "./ProfileAvatar";
 import InlineFeedback from "./InlineFeedback";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import StarIcon from "@mui/icons-material/Star";
 import MessageIcon from "@mui/icons-material/Message";
@@ -39,6 +39,22 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
   const [feedback, setFeedback] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
+  const photoInputRef = useRef(null);
+  const focusPhotoOnOpen = useRef(false);
+  function focusPhotoInput() {
+    photoInputRef.current?.scrollIntoView({ block: 'center' });
+    photoInputRef.current?.focus({ preventScroll: true });
+  }
+  function editProfilePicture() {
+    if (isEditing) focusPhotoInput();
+    else { focusPhotoOnOpen.current = true; setIsEditing(true); }
+  }
+  useLayoutEffect(() => {
+    if (isEditing && focusPhotoOnOpen.current) {
+      focusPhotoOnOpen.current = false;
+      focusPhotoInput();
+    }
+  }, [isEditing]);
   const [editBio, setEditBio] = useState(user.bio);
   const [editTitle, setEditTitle] = useState(user.title || '');
   const [selectedDate, setSelectedDate] = useState("");
@@ -264,7 +280,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
     <div className="profile-layout-container">
       <InlineFeedback message={feedback} onDismiss={() => setFeedback("")} />
       <div className="profile-header-card">
-        <ProfileAvatar user={user} className="profile-monogram" isOwnProfile={isOwnProfile} onEdit={() => setIsEditing(true)} />
+        <ProfileAvatar user={user} className="profile-monogram" isOwnProfile={isOwnProfile} onEdit={editProfilePicture} />
 
         <div className="coach-header-text profile-summary">
           <div className="profile-title-row coach-name-row">
@@ -295,7 +311,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                 <div className="coach-photo-requirement">
                   <h4>Profile photo</h4>
                   <p>{user.profileImage ? "Choose a new image to replace your current profile photo." : "Upload a clear photo of yourself for your profile."}</p>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setEditProfilePhoto(e.target.files[0] || null)} />
+                  <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setEditProfilePhoto(e.target.files[0] || null)} />
                 </div>
                 <div className="rate-template-builder-box coach-package-editor">
                   <h4>Packages and lesson rates</h4>
