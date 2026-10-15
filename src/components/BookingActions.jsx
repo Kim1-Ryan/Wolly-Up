@@ -2,6 +2,7 @@ import { apiFetch } from '../api';
 import { useState } from "react";
 import InlineFeedback from "./InlineFeedback";
 import "./BookingActions.css";
+import { packageWindow, dateInWindow, windowMessage } from '../packages';
 
 export default function BookingActions({ booking, userId, onChanged }) {
   const [kind,setKind]=useState("");
@@ -12,6 +13,7 @@ export default function BookingActions({ booking, userId, onChanged }) {
   const [confirmation,setConfirmation]=useState("");
   const today = new Date();
   const minimumDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const validityWindow = packageWindow(booking.validityStart || booking.sessions?.map(session=>session.date).sort()[0], booking.validityMonths ?? 3);
   async function submit(action) {
     if (busy) return;
     if (action==='request') {
@@ -19,6 +21,7 @@ export default function BookingActions({ booking, userId, onChanged }) {
       if (kind==='edit') {
         const invalid = sessions.findIndex(s => !s.date || !s.time || !Number.isFinite(Date.parse(`${s.date}T${s.time}`)) || Date.parse(`${s.date}T${s.time}`)<=Date.now());
         if (invalid>=0) { setError(`Lesson ${invalid+1}: choose a date and time in the future. Past lessons cannot be requested.`); return; }
+        if (validityWindow && sessions.some(session=>!dateInWindow(session.date,validityWindow))) { setError(windowMessage(validityWindow)); return; }
       }
     }
     setBusy(true);setError("");setConfirmation("");
@@ -58,7 +61,7 @@ export default function BookingActions({ booking, userId, onChanged }) {
         {kind==='edit'&&sessions.map((s,i)=><fieldset className="booking-change-lesson" disabled={busy} key={i}>
           <legend>Lesson {i+1}</legend>
           <div className="booking-change-fields">
-          <label>Date<input type="date" min={minimumDate} value={s.date} required onChange={e=>{setError('');setSessions(prev=>prev.map((v,j)=>j===i?{...v,date:e.target.value}:v));}}/></label>
+          <label>Date<input type="date" min={validityWindow && validityWindow.start > minimumDate ? validityWindow.start : minimumDate} max={validityWindow?.end} value={s.date} required onChange={e=>{setError(validityWindow && e.target.value && !dateInWindow(e.target.value,validityWindow) ? windowMessage(validityWindow) : '');setSessions(prev=>prev.map((v,j)=>j===i?{...v,date:e.target.value}:v));}}/></label>
           <label>Time<input type="time" value={s.time} required onChange={e=>setSessions(prev=>prev.map((v,j)=>j===i?{...v,time:e.target.value}:v))}/></label>
           </div>
           <small>{s.date && Number.isFinite(Date.parse(`${s.date}T00:00`)) ? new Date(`${s.date}T00:00`).toLocaleDateString('en-ZA',{day:'numeric',month:'long',year:'numeric'}) : 'Choose a future date'} · South African time (SAST)</small>

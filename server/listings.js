@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { listingTokenCost, sessionUser } from './tokens.js';
-import { packageLabel } from '../src/packages.js';
+import { packageLabel, validPackageWindow, validityMonths } from '../src/packages.js';
 
 export const listingSchema = `ALTER TABLE listings ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS offer JSONB;
@@ -54,10 +54,10 @@ export async function handleListings(request,response,url,pool,readBody,sendJson
       } else {
         if(data.isSpecial===true && data.customOffer) {
           const custom=data.customOffer;
-          if(!['adult_individual','adult_group','junior_individual'].includes(custom.category)||!['single','pack_5','pack_10'].includes(custom.packSize)||!Number.isInteger(custom.durationMinutes)||custom.durationMinutes<5||custom.durationMinutes>480) {
+          if(!validPackageWindow(custom)||!['adult_individual','adult_group','junior_individual'].includes(custom.category)||!['single','pack_5','pack_10'].includes(custom.packSize)||!Number.isInteger(custom.durationMinutes)||custom.durationMinutes<5||custom.durationMinutes>480) {
             await client.query('ROLLBACK');sendJson(response,400,{error:'Choose a lesson type, package and valid duration (5–480 minutes).'});return true;
           }
-          offer={category:custom.category,packSize:custom.packSize,durationMinutes:custom.durationMinutes};
+          offer={category:custom.category,packSize:custom.packSize,durationMinutes:custom.durationMinutes,validityMonths:validityMonths(custom)};
         } else offer=author.rates_structure?.offerings?.find(o=>o.category===data.category && o.packSize===data.packSize);
         if(!offer?.durationMinutes){await client.query('ROLLBACK');sendJson(response,400,{error:'Select one configured package with a lesson duration.'});return true;}
         title=offer.category.replaceAll('_',' · ')+' · '+packageLabel(offer.packSize);

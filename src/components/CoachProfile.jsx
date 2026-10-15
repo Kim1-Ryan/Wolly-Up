@@ -11,7 +11,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import "./BookingCalendar.css";
 import "./PackageEditor.css";
 import LoadingSpinner from './LoadingSpinner';
-import { packageLabel, packageValidity, sortOffers } from '../packages';
+import { packageLabel, packageValidity, sortOffers, validityOptions, validityMonths, validityLabel, packageWindow, dateInWindow, windowMessage } from '../packages';
 
 const LESSON_CATEGORIES = [
   { value: "junior_individual", label: "Junior Individual Lessons" },
@@ -20,8 +20,8 @@ const LESSON_CATEGORIES = [
 ];
 const PACKAGE_OPTIONS = [
   { value: "single", label: "1 lesson" },
-  { value: "pack_5", label: "5 lessons (3-month validity)" },
-  { value: "pack_10", label: "10 lessons (3-month validity)" }
+  { value: "pack_5", label: "5 lessons" },
+  { value: "pack_10", label: "10 lessons" }
 ];
 const RATE_OPTIONS = LESSON_CATEGORIES.flatMap((category) => PACKAGE_OPTIONS.map((pack) => ({
   id: `${category.value}_${pack.value}`,
@@ -105,6 +105,19 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
   const formatLessonDate = date => new Date(`${date}T12:00:00`).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' });
   const [durations, setDurations] = useState(() => Object.fromEntries((user.ratesStructure?.offerings || []).map(o=>[o.category+'_'+o.packSize,o.durationMinutes || ''])));
   const [editableRates, setEditableRates] = useState(() => ratesToFormValues(offeredRates));
+  const [editableValidity, setEditableValidity] = useState(() => Object.fromEntries(offeredRates.map(offer => [`${offer.category}_${offer.packSize}`, validityMonths(offer)])));
+  const bookingWindow = selectedRate && sessions.length ? packageWindow(sessions.map(session=>session.date).sort()[0], validityMonths(selectedRate)) : null;
+  const latestBookingDate = bookingWindow?.end || `${currentYear + 1}-12-31`;
+  function chooseLessonDate(date) {
+    if (date && bookingWindow && !dateInWindow(date, bookingWindow)) {
+      setScheduleError(windowMessage(bookingWindow));
+      setSelectedDate('');
+      return;
+    }
+    setSelectedDate(date);
+    if (date) setCalendarYear(Number(date.slice(0,4)));
+    setScheduleError('');
+  }
   const [editProfilePhoto, setEditProfilePhoto] = useState(null);
   const rating = Number(user.rating);
   const hasRating = Array.isArray(user.reviews) && user.reviews.length > 0 && Number.isFinite(rating) && rating > 0;
@@ -156,6 +169,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
     setEditTitle(user.title || '');
     setEditBio(user.bio);
     setEditableRates(ratesToFormValues(offeredRates));
+    setEditableValidity(Object.fromEntries(offeredRates.map(offer => [`${offer.category}_${offer.packSize}`, validityMonths(offer)])));
     setEditProfilePhoto(null);
     setIsEditing(true);
   }
@@ -204,7 +218,8 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
           category: option.category,
           packSize: option.packSize,
           rate: Number(editableRates[option.id]),
-          durationMinutes: Number(durations[option.id])
+          durationMinutes: Number(durations[option.id]),
+          validityMonths: Number(editableValidity[option.id] ?? 3)
         }))
       })
     });
@@ -240,6 +255,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
       setScheduleError("Choose a package, date and time for this lesson.");
       return;
     }
+    if (bookingWindow && !dateInWindow(selectedDate, bookingWindow)) { setScheduleError(windowMessage(bookingWindow)); return; }
     if (new Date(`${selectedDate}T${selectedTime}`) <= new Date() || confirmedBookingDates.has(selectedDate)) {
       setScheduleError("Choose an available date and time in the future.");
       return;
@@ -264,6 +280,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
       setScheduleError(`Select all ${requiredLessons || "required"} lesson dates and times before requesting your booking.`);
       return;
     }
+    if (!bookingWindow || sessions.some(session => !dateInWindow(session.date, bookingWindow))) { setScheduleError(bookingWindow ? windowMessage(bookingWindow) : 'Choose your first lesson date to start the package validity period.'); return; }
     if (sessions.some((session) => new Date(`${session.date}T${session.time}`) <= new Date() || confirmedBookingDates.has(session.date))) {
       setScheduleError("A selected lesson is no longer available. Remove it and choose another date and time.");
       return;
@@ -276,6 +293,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
       packSize: selectedRate.packSize,
       coachName: user.name,
       sessions: [...sessions].sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`)),
+      validityStart: bookingWindow.start,
       rate: selectedRate.formattedRate,
       package: selectedRate.category.replace(/_/g, " ") + " (" + packageLabel(selectedRate.packSize) + ")"
     });
@@ -340,11 +358,12 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                         <div className={`rate-option-row${isSelected ? " has-rate" : ""}`} key={option.id}>
                           <label className="package-editor-toggle">
                             <input type="checkbox" checked={isSelected} onChange={() => toggleRateOption(option.id)} />
-                            <span><strong>{packageLabel(option.packSize)}</strong><small>{option.packSize==='single'?'One session':'Valid for 3 months'}</small></span>
+                            <span><strong>{packageLabel(option.packSize)}</strong><small>{option.packSize==='single'?'One session':`Valid for ${validityLabel(Number(editableValidity[option.id] ?? 3))}`}</small></span>
                           </label>
                           {isSelected && <div className="package-editor-fields">
                             <label>Total price (ZAR)<input type="number" min="0" step="0.01" placeholder="e.g. 600" aria-label={`${option.label} total price in ZAR`} value={editableRates[option.id]} onChange={(e) => setEditableRates((previous) => ({ ...previous, [option.id]: e.target.value }))} /></label>
                             <label>Lesson length (min)<input type="number" min="5" max="480" step="1" placeholder="e.g. 60" aria-label={`${option.label} minutes per lesson`} value={durations[option.id] || ''} onChange={e=>setDurations(prev=>({...prev,[option.id]:e.target.value}))} required /></label>
+                            <label className="package-validity-editor">Validity period<select value={editableValidity[option.id] ?? 3} onChange={e=>setEditableValidity(previous=>({...previous,[option.id]:Number(e.target.value)}))}>{validityOptions(option.packSize).map(months=><option key={months} value={months}>{validityLabel(months)}</option>)}</select><small>Starts on the first lesson date. A year is available for 10 lessons or more.</small></label>
                           </div>}
                         </div>
                       );
@@ -379,10 +398,10 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                   <div className="matrix-tier-header">
                     <h4>{offering.category.replace(/_/g, " · ").toUpperCase()}</h4>
                   </div>
-                  <div className="matrix-tier-body">
+                  <div className={`matrix-tier-body ${isOwnProfile ? 'package-owner-view' : 'package-learner-view'}`}>
                     <span className="pack-size-label">{packageLabel(offering.packSize)}</span>
                     <p className="price-tag-large">{offering.formattedRate}</p><p>{offering.durationMinutes ? `${offering.durationMinutes} minutes per lesson` : "Lesson duration awaiting coach confirmation"}</p>
-                    {packageValidity(offering.packSize)&&<p className="package-validity">{packageValidity(offering.packSize, !isOwnProfile && viewerRole === 'learner')}</p>}
+                    {packageValidity(offering.packSize)&&<p className="package-validity">{packageValidity(offering.packSize, !isOwnProfile && viewerRole === 'learner', validityMonths(offering))}</p>}
                     {!isOwnProfile && (
                       <button type="button" className="btn-primary package-select-button"
                         disabled={requesting}
@@ -418,7 +437,6 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                 <li className={selectedRate && sessions.length < requiredLessons ? 'is-current' : ''}><span>2</span> Add lesson dates</li>
                 <li className={requiredLessons && sessions.length === requiredLessons ? 'is-current' : ''}><span>3</span> Review & request</li>
               </ol>}
-            {!isOwnProfile && availabilityReady && <span className="calendar-booked-days">{[...confirmedBookingDates].filter(d => d.startsWith(String(calendarYear))).length} booked days in {calendarYear}</span>}
             </div>
             {isOwnProfile && <div className="calendar-activity" aria-label="Confirmed booking activity">
               <div className="calendar-activity-controls"><div className="period-toggle" role="group" aria-label="Booking tally period">
@@ -459,11 +477,11 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                         <button
                           type="button"
                           key={day.dateString}
-                          className={"calendar-cell " + (day.isBooked ? "cell-booked" : "cell-open") + " " + (selectedDate === day.dateString || sessions.some((session) => session.date === day.dateString) ? "cell-selected" : "")}
-                          onClick={function() { if (!day.isBooked && !isOwnProfile) setSelectedDate(day.dateString); }}
+                          className={"calendar-cell " + (day.isBooked ? "cell-booked" : "cell-open") + " " + (bookingWindow && !dateInWindow(day.dateString, bookingWindow) ? 'cell-outside-window ' : '') + (selectedDate === day.dateString || sessions.some((session) => session.date === day.dateString) ? "cell-selected" : "")}
+                          onClick={function() { if (!day.isBooked && !isOwnProfile) chooseLessonDate(day.dateString); }}
                           disabled={day.isBooked || isOwnProfile || requesting || !availabilityReady || !selectedRate || sessions.length >= requiredLessons || new Date(`${day.dateString}T23:59:59`) < new Date()}
-                          title={`${day.dateString}: ${day.isBooked ? "Confirmed booking" : "Available"}`}
-                          aria-label={`${day.dateString}: ${day.isBooked ? "Confirmed booking" : "Available"}`}
+                          title={`${day.dateString}: ${day.isBooked ? "Confirmed booking" : bookingWindow && !dateInWindow(day.dateString, bookingWindow) ? 'Outside your package validity period' : "Available"}`}
+                          aria-label={`${day.dateString}: ${day.isBooked ? "Confirmed booking" : bookingWindow && !dateInWindow(day.dateString, bookingWindow) ? 'Outside your package validity period' : "Available"}`}
                           aria-pressed={selectedDate === day.dateString || sessions.some(s => s.date === day.dateString)}
                         />
                       );
@@ -472,7 +490,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                 </div>
               </div>
               <div className="calendar-year-tabs" aria-label="Calendar year">
-                {[currentYear, currentYear + 1].map((year) => (
+                {Array.from({length: Math.max(currentYear + 1, Number(latestBookingDate.slice(0,4))) - currentYear + 1}, (_, index) => currentYear + index).map((year) => (
                   <button
                     type="button"
                     key={year}
@@ -496,7 +514,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                 <fieldset disabled={!selectedRate || !availabilityReady || requesting || sessions.length >= requiredLessons}>
                 <div className="timeline-input-verification-block">
                   <label>Lesson date
-                  <input type="date" value={selectedDate} min={today} max={`${currentYear + 1}-12-31`} onChange={e => { setSelectedDate(e.target.value); if(e.target.value) setCalendarYear(Number(e.target.value.slice(0,4))); setScheduleError(''); }} />
+                  <input type="date" value={selectedDate} min={bookingWindow?.start || today} max={latestBookingDate} aria-describedby={scheduleError?'booking-date-error':bookingWindow?'booking-window-dates':undefined} aria-invalid={Boolean(scheduleError)} onChange={e => chooseLessonDate(e.target.value)} />
                   </label>
                   <label>Lesson time
                   <input type="time" value={selectedTime} onChange={function(e) { setSelectedTime(e.target.value); }} disabled={!selectedRate || sessions.length >= requiredLessons} required />
@@ -504,7 +522,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                 </div>
                 <button type="button" className="btn-secondary add-lesson-button" onClick={addSession} disabled={!selectedRate || !selectedDate || !selectedTime || sessions.length >= requiredLessons}>Add lesson{requiredLessons ? ` (${sessions.length}/${requiredLessons})` : ""}</button>
                 </fieldset>
-                {scheduleError && <p className="booking-error" role="alert">{scheduleError}</p>}
+                {scheduleError && <p id="booking-date-error" className="booking-error" role="alert">{scheduleError}</p>}
                 </div>
                 <aside className="booking-request-summary" aria-label="Booking summary">
                 <h4>Your lesson plan <span>{sessions.length}/{requiredLessons || '–'}</span></h4>
@@ -518,7 +536,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                 </ol>}
 
                 <div className="booking-total"><span>Package total</span><strong>{selectedRate?.formattedRate || '—'}</strong></div>
-                {selectedRate && packageValidity(selectedRate.packSize) && <p className="package-validity booking-package-validity">The package you selected is valid for 3 months. Schedule all lessons within this window.</p>}
+                {selectedRate && packageValidity(selectedRate.packSize) && <div className="package-validity booking-package-validity"><p>The package you selected is valid for {validityLabel(validityMonths(selectedRate))}. Schedule all lessons within this window.</p>{bookingWindow ? <p id="booking-window-dates"><strong>{formatLessonDate(bookingWindow.start)} – {formatLessonDate(bookingWindow.end)}</strong></p> : <p>Your first added lesson date starts this window.</p>}</div>}
                 <p className="booking-next-step">{selectedRate && sessions.length < requiredLessons ? `Add ${requiredLessons - sessions.length} more ${requiredLessons - sessions.length === 1 ? 'lesson' : 'lessons'} to continue.` : 'Your coach approves the dates before payment.'}</p>
                 <div className="action-buttons-row">
                   <button className="btn-primary" disabled={requesting || !availabilityReady || !selectedRate?.durationMinutes || !requiredLessons || sessions.length !== requiredLessons} onClick={handleTriggerBookingRequest}>{requesting ? 'Sending request…' : 'Request booking'}</button>

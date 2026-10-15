@@ -12,6 +12,7 @@ import { verificationSchema, createSession, handleVerification } from "./verific
 import { profileRatings, rankProfiles } from "./ratings.js";
 import { handleListings, listingSchema } from './listings.js';
 import { handleTokens, tokenSchema, sessionUser, sessionProfile } from './tokens.js';
+import { validPackageWindow, validityMonths } from '../src/packages.js';
 
 const port = process.env.PORT || 3002;
 const scrypt = promisify(scryptCallback);
@@ -142,16 +143,17 @@ export async function handleRequest(request, response) {
       }
       if (data.role === "coach" && (
         offerings.length === 0 ||
-        offerings.some(({ category, packSize, rate, durationMinutes }) => !category || !packSize || !Number.isFinite(rate) || rate < 0 || !Number.isInteger(durationMinutes) || durationMinutes < 5 || durationMinutes > 480)
+        offerings.some(offer => !validPackageWindow(offer) || !offer.category || !offer.packSize || !Number.isFinite(offer.rate) || offer.rate < 0 || !Number.isInteger(offer.durationMinutes) || offer.durationMinutes < 5 || offer.durationMinutes > 480)
       )) {
-        sendJson(response, 400, { error: "Select at least one lesson option and provide a valid rate and lesson duration (5–480 minutes) for each." });
+        sendJson(response, 400, { error: "Each package needs a valid price, a lesson duration of 5–480 minutes, and a validity period of 1, 3 or 6 months. One year is available only for packages of 10 lessons or more." });
         return;
       }
       const ratesStructure = data.role === "coach" ? {
-        offerings: offerings.map(({ category, packSize, rate, durationMinutes }) => ({
+        offerings: offerings.map(({ category, packSize, rate, durationMinutes, validityMonths: months }) => ({
           category,
           packSize,
           durationMinutes,
+          validityMonths: validityMonths({ validityMonths: months }),
           formattedRate: `R ${Number(rate).toFixed(2)}`
         }))
       } : null;
@@ -190,9 +192,9 @@ export async function handleRequest(request, response) {
       const offerings = Array.isArray(data.offerings) ? data.offerings : [];
       if (
         offerings.length === 0 ||
-        offerings.some(({ category, packSize, rate, durationMinutes }) => !category || !packSize || !Number.isFinite(rate) || rate < 0 || !Number.isInteger(durationMinutes) || durationMinutes < 5 || durationMinutes > 480)
+        offerings.some(offer => !validPackageWindow(offer) || !offer.category || !offer.packSize || !Number.isFinite(offer.rate) || offer.rate < 0 || !Number.isInteger(offer.durationMinutes) || offer.durationMinutes < 5 || offer.durationMinutes > 480)
       ) {
-        sendJson(response, 400, { error: "Select at least one lesson option and provide a valid rate and lesson duration (5–480 minutes) for each." });
+        sendJson(response, 400, { error: "Each package needs a valid price, a lesson duration of 5–480 minutes, and a validity period of 1, 3 or 6 months. One year is available only for packages of 10 lessons or more." });
         return;
       }
       const profileImage = data.profileImage || null;
@@ -209,10 +211,11 @@ export async function handleRequest(request, response) {
         return;
       }
       const ratesStructure = {
-        offerings: offerings.map(({ category, packSize, rate, durationMinutes }) => ({
+        offerings: offerings.map(({ category, packSize, rate, durationMinutes, validityMonths: months }) => ({
           category,
           packSize,
           durationMinutes,
+          validityMonths: validityMonths({ validityMonths: months }),
           formattedRate: `R ${Number(rate).toFixed(2)}`
         }))
       };

@@ -1,5 +1,6 @@
 import { apiFetch } from '../api';
 import InlineFeedback from "./InlineFeedback";
+import { validityOptions, validityLabel } from '../packages';
 import React, { useState, useEffect } from "react";
 
 const LESSON_CATEGORIES = [
@@ -10,8 +11,8 @@ const LESSON_CATEGORIES = [
 
 const PACKAGE_OPTIONS = [
   { value: "single", label: "1 lesson" },
-  { value: "pack_5", label: "5 lessons (3-month validity)" },
-  { value: "pack_10", label: "10 lessons (3-month validity)" }
+  { value: "pack_5", label: "5 lessons" },
+  { value: "pack_10", label: "10 lessons" }
 ];
 
 const RATE_OPTIONS = LESSON_CATEGORIES.flatMap((category) =>
@@ -41,6 +42,7 @@ function AuthForm({ onAuthSuccess }) {
   });
   const [selectedRates, setSelectedRates] = useState({});
   const [durations, setDurations] = useState({});
+  const [packageValidityMonths, setPackageValidityMonths] = useState({});
 
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [profilePhotoConfirmed, setProfilePhotoConfirmed] = useState(false);
@@ -260,7 +262,8 @@ function AuthForm({ onAuthSuccess }) {
             category: option.category,
             packSize: option.packSize,
             rate: Number(selectedRates[option.id]),
-            durationMinutes: Number(durations[option.id])
+            durationMinutes: Number(durations[option.id]),
+            validityMonths: Number(packageValidityMonths[option.id] ?? 3)
           }))
         : [],
       profileImage,
@@ -480,6 +483,7 @@ function AuthForm({ onAuthSuccess }) {
                             />
                           )}
                           {isSelected && <label>Minutes per lesson<input type="number" min="5" max="480" step="1" value={durations[option.id] || ''} onChange={e=>setDurations(prev=>({...prev,[option.id]:e.target.value}))} required /></label>}
+                          {isSelected && <label>Validity period<select value={packageValidityMonths[option.id] ?? 3} onChange={e=>setPackageValidityMonths(previous=>({...previous,[option.id]:Number(e.target.value)}))}>{validityOptions(option.packSize).map(months=><option key={months} value={months}>{validityLabel(months)}</option>)}</select></label>}
                         </div>
                       );
                     })}

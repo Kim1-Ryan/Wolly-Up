@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import InlineFeedback from './InlineFeedback';
-import { packageLabel, packageValidity, sortOffers } from '../packages';
+import { packageLabel, packageValidity, sortOffers, validityMonths, validityOptions, validityLabel } from '../packages';
 import './ListingForm.css';
 
 export default function CreatePost({ user, wallet, activeCount=0, onAdd }) {
@@ -18,6 +18,7 @@ export default function CreatePost({ user, wallet, activeCount=0, onAdd }) {
   const [specialCategory,setSpecialCategory]=useState('adult_individual');
   const [specialPack,setSpecialPack]=useState('single');
   const [specialDuration,setSpecialDuration]=useState('60');
+  const [specialValidity,setSpecialValidity]=useState(3);
   const coach=user?.role==='coach';
   const offerings=sortOffers(user?.ratesStructure?.offerings || []);
   const offer=offerings.find(o=>`${o.category}-${o.packSize}`===packageKey);
@@ -29,7 +30,7 @@ export default function CreatePost({ user, wallet, activeCount=0, onAdd }) {
     if(coach&&!isSpecial&&!offer){setFeedback('Select one package to advertise.');return;}
     setBusy(true);setFeedback('');
     try {
-      const saved=await onAdd({title,content,price:Number(price||0),expectedTokenCost:cost,category:offer?.category,packSize:offer?.packSize,isSpecial:coach&&isSpecial,extendSpecial:coach&&isSpecial&&extendSpecial,customOffer:coach&&isSpecial?{category:specialCategory,packSize:specialPack,durationMinutes:Number(specialDuration)}:undefined,specialPrice:Number(specialPrice),expiresAt:coach&&isSpecial&&expiry ? new Date(`${expiry}:00+02:00`).toISOString() : null});
+      const saved=await onAdd({title,content,price:Number(price||0),expectedTokenCost:cost,category:offer?.category,packSize:offer?.packSize,isSpecial:coach&&isSpecial,extendSpecial:coach&&isSpecial&&extendSpecial,customOffer:coach&&isSpecial?{category:specialCategory,packSize:specialPack,durationMinutes:Number(specialDuration),validityMonths:specialValidity}:undefined,specialPrice:Number(specialPrice),expiresAt:coach&&isSpecial&&expiry ? new Date(`${expiry}:00+02:00`).toISOString() : null});
       if(saved){setIsSpecial(false);setSpecialPrice('');setExpiry('');setExtendSpecial(false);}
       if(saved){setTitle('');setContent('');setPrice('');setPackageKey('');setFeedback('Your listing is now live.');}
     }catch {setFeedback('Unable to save your listing. Please try again.');}finally{setBusy(false);}
@@ -42,11 +43,12 @@ export default function CreatePost({ user, wallet, activeCount=0, onAdd }) {
       {coach&&<div className="listing-type-choice" role="group" aria-label="Offer type"><button type="button" className="btn-secondary" aria-pressed={!isSpecial} onClick={()=>setIsSpecial(false)}>Existing package</button><button type="button" className="btn-secondary" aria-pressed={isSpecial} onClick={()=>{setIsSpecial(true);setExpiryBase(Date.now());}}>Special offer</button></div>}
       {coach&&!isSpecial&&<label>Package to advertise<select required value={packageKey} onChange={e=>setPackageKey(e.target.value)}><option value="">Choose one offer</option>{offerings.map(o=><option key={`${o.category}-${o.packSize}`} value={`${o.category}-${o.packSize}`}>{o.category.replaceAll('_',' · ')} · {packageLabel(o.packSize)} · {o.formattedRate}</option>)}</select></label>}
       {!coach&&<label>Listing title<input required maxLength={150} value={title} placeholder="e.g. Looking for a beginner golf coach" onChange={e=>setTitle(e.target.value)}/></label>}
-      {coach&&!isSpecial&&offer&&<div className="listing-offer-preview"><strong>{offer.category.replaceAll('_',' · ').toUpperCase()}</strong><span>{packageLabel(offer.packSize)}</span><b>{offer.formattedRate}</b><small>{offer.durationMinutes} minutes per lesson</small><small>{packageValidity(offer.packSize)}</small></div>}
+      {coach&&!isSpecial&&offer&&<div className="listing-offer-preview"><strong>{offer.category.replaceAll('_',' · ').toUpperCase()}</strong><span>{packageLabel(offer.packSize)}</span><b>{offer.formattedRate}</b><small>{offer.durationMinutes} minutes per lesson</small><small>{packageValidity(offer.packSize,false,validityMonths(offer))}</small></div>}
       {coach&&!isSpecial&&!offerings.length&&<p>Add a package in Edit profile or create a new special.</p>}
       {coach&&isSpecial&&<>
         <label>Lesson type<select value={specialCategory} onChange={e=>setSpecialCategory(e.target.value)}><option value="junior_individual">Junior · Individual</option><option value="adult_individual">Adult · Individual</option><option value="adult_group">Adult · Group</option></select></label>
-        <label>Package<select value={specialPack} onChange={e=>setSpecialPack(e.target.value)}><option value="single">1 lesson</option><option value="pack_5">5 lessons</option><option value="pack_10">10 lessons</option></select></label>
+        <label>Package<select value={specialPack} onChange={e=>{setSpecialPack(e.target.value);if(!validityOptions(e.target.value).includes(specialValidity))setSpecialValidity(3);}}><option value="single">1 lesson</option><option value="pack_5">5 lessons</option><option value="pack_10">10 lessons</option></select></label>
+        <label>Lesson validity period<select value={specialValidity} onChange={e=>setSpecialValidity(Number(e.target.value))}>{validityOptions(specialPack).map(months=><option key={months} value={months}>{validityLabel(months)}</option>)}</select><small>Starts on the first lesson date; separate from the listing expiry below.</small></label>
         <label>Minutes per lesson<input type="number" required min="5" max="480" step="1" value={specialDuration} onChange={e=>setSpecialDuration(e.target.value)}/></label>
         <label>Special package price (ZAR)<input type="number" required min="0.01" step="0.01" value={specialPrice} onChange={e=>setSpecialPrice(e.target.value)}/></label>
         <label className="listing-special-toggle"><input type="checkbox" checked={extendSpecial} onChange={e=>{setExtendSpecial(e.target.checked);setExpiry('');}}/> Extend to 60 days · 10 extra tokens</label>

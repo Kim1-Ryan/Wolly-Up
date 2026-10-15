@@ -1,6 +1,6 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
-import { packageLabel, packageValidity } from '../packages';
+import { packageLabel, packageValidity, validityMonths } from '../packages';
 
 function Post(props) {
   function handleClick() {
@@ -18,7 +18,7 @@ function Post(props) {
         {props.offer?.isSpecial&&<p className="listing-special-badge">Special offer <del>{props.offer.regularFormattedRate}</del></p>}
         {props.expiresAt&&<p className="listing-editor-info">{props.status==='expired'?'Expired':'Expires'} {new Date(props.expiresAt).toLocaleString('en-ZA',{timeZone:'Africa/Johannesburg'})} SAST</p>}
         {props.status==='archived'&&<p className="listing-editor-info">Archived listing</p>}
-        {props.offer ? <><span className="pack-size-label">{packageLabel(props.offer.packSize)}</span><p className="price-tag-large">{props.offer.formattedRate}</p><p>{props.offer.durationMinutes} minutes per lesson</p>{packageValidity(props.offer.packSize)&&<p className="package-validity">{packageValidity(props.offer.packSize, props.viewerRole === 'learner')}</p>}</> : <h1>{props.title}</h1>}
+        {props.offer ? <><span className="pack-size-label">{packageLabel(props.offer.packSize)}</span><p className="price-tag-large">{props.offer.formattedRate}</p><p>{props.offer.durationMinutes} minutes per lesson</p>{packageValidity(props.offer.packSize)&&<p className="package-validity">{packageValidity(props.offer.packSize, props.viewerRole === 'learner', validityMonths(props.offer))}</p>}</> : <h1>{props.title}</h1>}
         {props.status==='pending_fee_configuration'&&<p className="listing-editor-info">Private offer · Awaiting publishing fee setup</p>}
         <p>{props.content}</p>
       </div>

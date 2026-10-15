@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { lessonCount, validityMonths, validPackageWindow, packageWindow, dateInWindow, windowMessage } from '../src/packages.js';
 
 function timedSessions(sessions, durationMinutes) {
   return sessions.map(s => {
@@ -98,6 +99,13 @@ export async function handleBookings(request, response, url, pool, readBody, sen
       const current=(await pool.query("SELECT details FROM bookings WHERE id=$1 AND (learner_id=$2 OR coach_id=$2)",[changeMatch[1],userId])).rows[0];
       const duration=current?.details.durationMinutes;
       if(kind==='edit'&&!duration){sendJson(response,400,{error:"Confirm the package lesson duration before rescheduling this booking."});return true;}
+      if (kind === 'edit') {
+        const start = current.details.validityStart || current.details.sessions?.map(session=>session.date).sort()[0];
+        const window = packageWindow(start, current.details.validityMonths ?? 3);
+        if (!window || sessions.some(session=>!dateInWindow(session.date, window))) {
+          sendJson(response,400,{error:window ? windowMessage(window) : 'The package validity period is unavailable. Please contact your coach.'});return true;
+        }
+      }
       const proposal = {id:randomUUID(),requestedBy:userId,kind,reason:reason.trim(),sessions:kind==='edit'?timedSessions(sessions,duration):[],createdAt:new Date().toISOString()};
       result = await pool.query(`UPDATE bookings SET change_request=$1 WHERE id=$2 AND (learner_id=$3 OR coach_id=$3)
         AND status IN ('pending_coach_approval','awaiting_immediate_payment','booking_confirmed_and_paid') AND change_request IS NULL
@@ -138,8 +146,19 @@ export async function handleBookings(request, response, url, pool, readBody, sen
     const id = randomUUID();
     const offer=profiles.rows.find(p=>p.id===data.coachId)?.rates_structure?.offerings?.find(o=>o.category===data.category&&o.packSize===data.packSize);
     if(!Number.isInteger(offer?.durationMinutes)||offer.durationMinutes<5||offer.durationMinutes>480){sendJson(response,400,{error:"The coach must confirm a lesson duration in the selected package."});return true;}
+    if (!validPackageWindow(offer) || data.sessions.length !== lessonCount(offer.packSize)) {
+      sendJson(response,400,{error:'Select every lesson in the package and check its validity period.'});return true;
+    }
+    const validityStart = data.sessions.map(session=>session.date).sort()[0];
+    const window = packageWindow(validityStart, validityMonths(offer));
+    if (!window || (data.validityStart && data.validityStart !== validityStart) || data.sessions.some(session=>!dateInWindow(session.date,window))) {
+      sendJson(response,400,{error:window ? windowMessage(window) : 'Choose a valid first lesson date.'});return true;
+    }
+    if (new Set(data.sessions.map(session=>`${session.date}T${session.time}`)).size !== data.sessions.length) {
+      sendJson(response,400,{error:'Choose a different date or time for each lesson.'});return true;
+    }
     await pool.query("INSERT INTO bookings (id, learner_id, coach_id, details) VALUES ($1, $2, $3, $4)",
-      [id, data.learnerId, data.coachId, JSON.stringify({ sessions: timedSessions(data.sessions,offer.durationMinutes), durationMinutes:offer.durationMinutes, package: data.package, rate: offer.formattedRate })]);
+      [id, data.learnerId, data.coachId, JSON.stringify({ sessions: timedSessions(data.sessions,offer.durationMinutes), durationMinutes:offer.durationMinutes, validityMonths:validityMonths(offer), validityStart:window.start, validityEnd:window.end, package: data.package, rate: offer.formattedRate })]);
     const result = await pool.query(`${select} WHERE b.id = $1`, [id]);
     sendJson(response, 201, present(result.rows[0]));
     return true;
