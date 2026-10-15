@@ -462,6 +462,7 @@ function App() {
               title={postItem.title}
               offer={postItem.offer}
               authorType={postItem.authorType}
+              viewerRole={currentUser.role}
               status={postItem.status}
               expiresAt={postItem.expiresAt}
               content={postItem.content}
@@ -668,6 +669,7 @@ function App() {
                   key={selectedCoachForView.id}
                   user={selectedCoachForView} 
                   isOwnProfile={false}
+                  viewerRole={currentUser.role}
                   bookings={bookings.filter(b => b.coachId === selectedCoachForView.id)}
                   onRequestBooking={handleRequestBooking}
                   onMessageInit={handleInitializeSecureChat}
@@ -678,6 +680,7 @@ function App() {
                 bookingTarget={notificationDestination?.type === 'booking' ? notificationDestination : null}
                 user={currentUser} 
                 isOwnProfile={true}
+                viewerRole={currentUser.role}
                 bookings={bookings.filter(b => b.coachId === currentUser.id)}
                 onBookingChanged={booking => setBookings(prev => prev.map(b => b.id === booking.id ? booking : b))}
                 onCoachAction={handleCoachAction}

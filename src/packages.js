@@ -1,5 +1,5 @@
 export const packageLabel = pack => ({ single: '1 lesson', pack_5: '5 lessons', pack_10: '10 lessons' }[pack] || pack);
-export const packageValidity = pack => pack === 'single' ? '' : 'Valid for 3 months · schedule all lessons within this window.';
+export const packageValidity = (pack, forLearner = false) => pack === 'single' ? '' : `Valid for 3 months${forLearner ? '. Schedule all lessons within this window.' : ''}`;
 export function sortOffers(offers) {
   const categories = { junior_individual: 0, adult_individual: 1, adult_group: 2 };
   const packs = { single: 0, pack_5: 1, pack_10: 2 };

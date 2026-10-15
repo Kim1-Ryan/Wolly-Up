@@ -14,7 +14,16 @@
 .profile-feed-view .profile-meta-row { color: #385544; }
 .profile-feed-view .inline-editor-box { box-sizing: border-box; min-width: 0; padding: 22px; background: #e0eee5; border: 1px solid #aecbb8; }
 .profile-edit-form { display: grid; gap: 20px; }
-.profile-edit-form legend { padding: 0 8px; color: #234b36; font-size: 16px; font-weight: 600; }
+.profile-edit-form legend { margin-inline-start: auto; padding: 0 8px; color: #234b36; font-size: 16px; font-weight: 600; text-align: right; }
+.package-rates-grid .package-matrix-template-view { display: flex; flex-direction: column; }
+.package-rates-grid .matrix-tier-body { flex: 1; }
+.profile-feed-view .booking-list-group { padding: 16px; margin-top: 16px; border: 1px solid var(--profile-line); border-radius: 10px; }
+.profile-feed-view .booking-list-group h4 { margin: 0 0 12px; }
+.profile-feed-view .booking-list-group .booking-list-empty { margin: 0; color: #385544; line-height: 1.6; }
+.profile-feed-view .booking-browser > .completed-lessons { padding: 0; margin-top: 16px; border: 1px solid var(--profile-line); border-radius: 10px; }
+.profile-feed-view .booking-browser > .completed-lessons > summary { padding: 16px; }
+.profile-feed-view .booking-browser > .completed-lessons[open] { padding-bottom: 16px; }
+.profile-feed-view .booking-browser > .completed-lessons > :not(summary) { margin-left: 16px; margin-right: 16px; }
 .profile-feed-view .inline-editor-box label { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 0; color: #294d39; font: inherit; font-size: 14px; font-weight: 600; }
 .profile-feed-view .inline-editor-box input:not([type="checkbox"]),
 .profile-feed-view .inline-editor-box textarea,
@@ -54,6 +63,7 @@
 .feed-sort-panel label { font-size: 14px; }
 .feed-sort-panel output { color: #18583e; font-weight: 600; }
 .feed-sort-panel p { margin: 0; color: #385544; font-size: 13px; line-height: 1.6; }
+.feed-sort-panel > button { display: flex; justify-self: center; justify-content: center; width: 100%; text-align: center; }
 .main-feed-section .feed-sort-panel input[type="range"] { padding: 0; height: 28px; accent-color: #18583e; border: 0; }
 .feed-sort-menu summary:focus-visible, .period-toggle button:focus-visible { outline: 2px solid #267650; outline-offset: 3px; }
 @media (max-width: 600px) {

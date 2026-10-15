@@ -37,7 +37,7 @@ function ratesToFormValues(rates) {
   ]));
 }
 
-function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachAction, onMessageInit, onUpdateProfile, onBookingChanged, bookingTarget }) {
+function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooking, onCoachAction, onMessageInit, onUpdateProfile, onBookingChanged, bookingTarget }) {
   const [feedback, setFeedback] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
@@ -382,7 +382,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                   <div className="matrix-tier-body">
                     <span className="pack-size-label">{packageLabel(offering.packSize)}</span>
                     <p className="price-tag-large">{offering.formattedRate}</p><p>{offering.durationMinutes ? `${offering.durationMinutes} minutes per lesson` : "Lesson duration awaiting coach confirmation"}</p>
-                    {packageValidity(offering.packSize)&&<p className="package-validity">{packageValidity(offering.packSize)}</p>}
+                    {packageValidity(offering.packSize)&&<p className="package-validity">{packageValidity(offering.packSize, !isOwnProfile && viewerRole === 'learner')}</p>}
                     {!isOwnProfile && (
                       <button type="button" className="btn-primary package-select-button"
                         disabled={requesting}
@@ -434,7 +434,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                 </select>
                 {selectedRate && <small>{selectedRate.durationMinutes ? `${selectedRate.durationMinutes} minutes per lesson` : 'Awaiting lesson duration from coach'} · {requiredLessons} {requiredLessons === 1 ? 'lesson' : 'lessons'}</small>}
                 {selectedRate && <small>Request your dates, then pay after coach approval.</small>}
-                {selectedRate && packageValidity(selectedRate.packSize) && <small className="package-validity">{packageValidity(selectedRate.packSize)}</small>}
+                {selectedRate && packageValidity(selectedRate.packSize) && <small className="package-validity">{packageValidity(selectedRate.packSize, viewerRole === 'learner')}</small>}
               </label>
               {requestSent && <p className="booking-success" role="status">✓ Request sent. Your coach will review your dates. You can pay once they approve.</p>}
             </>}
@@ -519,7 +519,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
                 </ol>}
 
                 <div className="booking-total"><span>Package total</span><strong>{selectedRate?.formattedRate || '—'}</strong></div>
-                {selectedRate && packageValidity(selectedRate.packSize) && <p className="package-validity">{packageValidity(selectedRate.packSize)}</p>}
+                {selectedRate && packageValidity(selectedRate.packSize) && <p className="package-validity">{packageValidity(selectedRate.packSize, viewerRole === 'learner')}</p>}
                 <p className="booking-next-step">{selectedRate && sessions.length < requiredLessons ? `Add ${requiredLessons - sessions.length} more ${requiredLessons - sessions.length === 1 ? 'lesson' : 'lessons'} to continue.` : 'Your coach approves the dates before payment.'}</p>
                 <div className="action-buttons-row">
                   <button className="btn-primary" disabled={requesting || !availabilityReady || !selectedRate?.durationMinutes || !requiredLessons || sessions.length !== requiredLessons} onClick={handleTriggerBookingRequest}>{requesting ? 'Sending request…' : 'Request booking'}</button>
