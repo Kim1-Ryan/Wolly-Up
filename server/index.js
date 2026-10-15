@@ -11,7 +11,7 @@ import { inboxSchema, handleInbox } from "./inbox.js";
 import { verificationSchema, createSession, handleVerification } from "./verification.js";
 import { profileRatings, rankProfiles } from "./ratings.js";
 import { handleListings, listingSchema } from './listings.js';
-import { handleTokens, tokenSchema, sessionUser } from './tokens.js';
+import { handleTokens, tokenSchema, sessionUser, sessionProfile } from './tokens.js';
 
 const port = process.env.PORT || 3002;
 const scrypt = promisify(scryptCallback);
@@ -21,13 +21,13 @@ function sendJson(response, statusCode, body) {
   response.end(JSON.stringify(body));
 }
 
-async function publicProfile(profile) {
+async function publicProfile(profile, includeRatings = true) {
   const { password_hash, is_verified, rates_structure, profile_image, persona_inquiry_id, persona_status, persona_environment, token_balance, paid_listing_count, ...safeProfile } = profile;
   return {
     ...safeProfile,
     qualifications: (profile.qualifications || []).filter(qualification =>
       typeof qualification === 'string' && !/identity and profile documents verified/i.test(qualification)),
-    ...await profileRatings(pool, profile.id),
+    ...(includeRatings ? await profileRatings(pool, profile.id) : {}),
     isVerified: Boolean(profile.persona_status === "approved" && profile.persona_environment === "production"),
     ratesStructure: rates_structure,
     profileImage: profile_image || null
@@ -67,6 +67,13 @@ export async function handleRequest(request, response) {
     if(request.method==='OPTIONS'){response.writeHead(204);response.end();return;}
     const url = new URL(request.url, "http://localhost");
     if(await serveFrontend(request,response,url))return;
+    if (request.method === 'GET' && url.pathname === '/api/auth/session') {
+      const profile = await sessionProfile(request, pool);
+      if (!profile) { sendJson(response, 401, { error: 'Please sign in again.' }); return; }
+      // Ratings refresh independently once the app opens.
+      sendJson(response, 200, await publicProfile(profile, false));
+      return;
+    }
     const publicRoute=(request.method==='POST'&&['/api/auth/login','/api/auth/register'].includes(url.pathname)) ||
       (request.method==='GET'&&(url.pathname==='/api/health'||url.pathname==='/api/profiles'||/^\/api\/profiles\/[^/]+\/ratings$/.test(url.pathname)||/^\/api\/coaches\/[^/]+\/availability$/.test(url.pathname)||(url.pathname==='/api/listings'&&!url.searchParams.get('userId'))));
     if(url.pathname.startsWith('/api/')&&!publicRoute) {
@@ -83,13 +90,6 @@ export async function handleRequest(request, response) {
           sendJson(response,403,{error:'This action is not available for your account.'});return;
         }
       }
-    }
-    if (request.method === 'GET' && url.pathname === '/api/auth/session') {
-      const userId = await sessionUser(request, pool);
-      const profile = (await pool.query('SELECT * FROM profiles WHERE id=$1', [userId])).rows[0];
-      if (!profile) { sendJson(response, 401, { error: 'Please sign in again.' }); return; }
-      sendJson(response, 200, await publicProfile(profile));
-      return;
     }
     if (await handleTokens(request,response,url,pool,readBody,sendJson)) return;
     if (await handleListings(request,response,url,pool,readBody,sendJson)) return;

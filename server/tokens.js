@@ -19,6 +19,15 @@ export async function sessionUser(request,pool) {
     [createHash('sha256').update(token).digest('hex')])).rows[0]?.user_id || null;
 }
 
+export async function sessionProfile(request, pool) {
+  const token = request.headers?.authorization?.match(/^Bearer (.+)$/)?.[1];
+  if (!token) return null;
+  return (await pool.query(`SELECT p.* FROM account_sessions s
+    JOIN profiles p ON p.id = s.user_id
+    WHERE s.token_hash = $1 AND s.expires_at > NOW()`,
+    [createHash('sha256').update(token).digest('hex')])).rows[0] || null;
+}
+
 export async function handleTokens(request,response,url,pool,readBody,sendJson) {
   if(!['/api/tokens','/api/tokens/checkout'].includes(url.pathname))return false;
   const userId=await sessionUser(request,pool);

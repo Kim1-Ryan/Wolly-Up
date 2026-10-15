@@ -1,5 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { sessionProfile } from './tokens.js';
+
+test('session restoration loads the profile in one authenticated query', async () => {
+  const profile = { id: 'owner' };
+  let queries = 0;
+  const pool = { query: async (sql, parameters) => {
+    queries++;
+    assert.match(sql, /JOIN profiles/);
+    assert.match(sql, /s.expires_at > NOW\(\)/);
+    assert.equal(parameters[0], createHash('sha256').update('valid-session').digest('hex'));
+    return { rows: [profile] };
+  } };
+  assert.equal(await sessionProfile({ headers: {} }, pool), null);
+  assert.equal(queries, 0);
+  assert.equal(await sessionProfile({ headers: { authorization: 'Bearer valid-session' } }, pool), profile);
+  assert.equal(queries, 1);
+  assert.equal(await sessionProfile({ headers: { authorization: 'Bearer invalid' } }, { query: async () => ({ rows: [] }) }), null);
+});
 
 test('sign-in survives a fresh page load and logout clears it', async () => {
   const values = new Map();
