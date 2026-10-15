@@ -49,11 +49,13 @@
 .learner-edit-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .35fr); align-items: start; gap: 20px; margin-bottom: 20px; }
 .learner-photo-editor { padding-top: 0; margin-bottom: 16px; }
 .package-validity { box-sizing: border-box; width: fit-content; max-width: 100%; margin-left: auto; padding: 10px 12px; border-radius: 8px; background: #dceee2; color: #234b36; font-size: 13px; line-height: 1.6; text-align: center; }
-.package-rates-grid .matrix-tier-body > .package-validity { align-self: flex-end; }
-.availability-calendar-block .booking-package-picker { width: fit-content; max-width: 100%; margin-left: auto; justify-items: end; text-align: right; }
+.package-rates-grid .matrix-tier-body > .package-validity { align-self: center; margin-inline: auto; }
+.availability-calendar-block .booking-package-picker { width: fit-content; max-width: 100%; margin-left: 0; margin-right: auto; justify-items: start; text-align: left; }
 .availability-calendar-block .booking-package-picker select { width: auto; max-width: 100%; field-sizing: content; font-size: 14px; }
 .availability-calendar-block .booking-package-picker small { max-width: 100%; line-height: 1.6; }
 .booking-package-picker .package-validity { color: #234b36; }
+.booking-request-summary .booking-package-validity { width: 100%; margin: 16px auto; padding: 12px 16px; text-align: center; }
+.booking-date-panel > .booking-payment-note { margin: 14px 0 18px; color: #385544; }
 .calendar-activity { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 16px; margin-bottom: 20px; background: #f2f8f4; border: 1px solid #aecbb8; border-radius: 12px; }
 .calendar-activity-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .period-toggle { display: flex; padding: 4px; background: #cddfd3; border-radius: 10px; }
@@ -64,7 +66,9 @@
 .calendar-activity-total { display: grid; gap: 6px; margin: 0; color: #234b36; }
 .calendar-activity-total span { font-size: 13px; color: #385544; }
 .feed-sort-menu { grid-column: 2; grid-row: 1; align-self: center; justify-self: end; width: max-content; position: relative; }
-.feed-sort-menu > summary { padding: 10px 14px; border: 1px solid #aecbb8; border-radius: 9px; background: white; color: #294d39; cursor: pointer; font-size: 14px; }
+.feed-sort-menu > summary { display: flex; align-items: center; gap: 8px; list-style: none; padding: 10px 14px; border: 1px solid #aecbb8; border-radius: 9px; background: white; color: #294d39; cursor: pointer; font-size: 14px; }
+.feed-sort-menu > summary::-webkit-details-marker { display: none; }
+.feed-sort-icon { width: 18px; height: 18px; flex: 0 0 18px; }
 .feed-sort-panel { position: absolute; z-index: 5; top: calc(100% + 8px); right: 0; width: min(310px, calc(100vw - 96px)); padding: 18px; display: grid; gap: 18px; border: 1px solid #aecbb8; border-radius: 12px; background: white; box-shadow: 0 8px 28px #183e2826; }
 .feed-sort-panel label { font-size: 14px; }
 .feed-sort-panel output { color: #18583e; font-weight: 600; }

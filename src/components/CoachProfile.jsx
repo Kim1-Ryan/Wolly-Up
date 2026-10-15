@@ -433,8 +433,6 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                   {offeredRates.map(r => <option key={`${r.category}-${r.packSize}`} value={`${r.category}-${r.packSize}`}>{r.category.replaceAll('_', ' ')} · {packageLabel(r.packSize)} · {r.formattedRate}</option>)}
                 </select>
                 {selectedRate && <small>{selectedRate.durationMinutes ? `${selectedRate.durationMinutes} minutes per lesson` : 'Awaiting lesson duration from coach'} · {requiredLessons} {requiredLessons === 1 ? 'lesson' : 'lessons'}</small>}
-                {selectedRate && <small>Request your dates, then pay after coach approval.</small>}
-                {selectedRate && packageValidity(selectedRate.packSize) && <small className="package-validity">{packageValidity(selectedRate.packSize, viewerRole === 'learner')}</small>}
               </label>
               {requestSent && <p className="booking-success" role="status">✓ Request sent. Your coach will review your dates. You can pay once they approve.</p>}
             </>}
@@ -493,7 +491,8 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
               <div className="booking-planner">
                 <div className="booking-date-panel">
                 <h4>{sessions.length === requiredLessons && requiredLessons ? 'Your dates are ready' : `Choose lesson ${sessions.length + 1}${requiredLessons ? ` of ${requiredLessons}` : ''}`}</h4>
-                <p>Click a square above or use the date picker below. All times are South African time (SAST).</p>
+                <p>Click a square above or use the date picker below.<br />All times are South African time (SAST).</p>
+                {selectedRate && <p className="booking-payment-note">Request your dates, then pay after coach approval.</p>}
                 <fieldset disabled={!selectedRate || !availabilityReady || requesting || sessions.length >= requiredLessons}>
                 <div className="timeline-input-verification-block">
                   <label>Lesson date
@@ -519,7 +518,7 @@ function CoachProfile({ user, isOwnProfile, viewerRole, bookings, onRequestBooki
                 </ol>}
 
                 <div className="booking-total"><span>Package total</span><strong>{selectedRate?.formattedRate || '—'}</strong></div>
-                {selectedRate && packageValidity(selectedRate.packSize) && <p className="package-validity">{packageValidity(selectedRate.packSize, viewerRole === 'learner')}</p>}
+                {selectedRate && packageValidity(selectedRate.packSize) && <p className="package-validity booking-package-validity">The package you selected is valid for 3 months. Schedule all lessons within this window.</p>}
                 <p className="booking-next-step">{selectedRate && sessions.length < requiredLessons ? `Add ${requiredLessons - sessions.length} more ${requiredLessons - sessions.length === 1 ? 'lesson' : 'lessons'} to continue.` : 'Your coach approves the dates before payment.'}</p>
                 <div className="action-buttons-row">
                   <button className="btn-primary" disabled={requesting || !availabilityReady || !selectedRate?.durationMinutes || !requiredLessons || sessions.length !== requiredLessons} onClick={handleTriggerBookingRequest}>{requesting ? 'Sending request…' : 'Request booking'}</button>
