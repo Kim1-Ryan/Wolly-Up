@@ -44,7 +44,7 @@ function LearnerProfile({ user, bookings, onExecutePayment, onUpdateProfile, onM
       <InlineFeedback message={feedback} onDismiss={() => setFeedback("")} />
       <div className="profile-header-card learner-card-mods">
         <div className="profile-title-row learner-name-row">
-          <div className="learner-name-identity"><ProfileAvatar user={user}/>
+          <div className="learner-name-identity"><ProfileAvatar user={user} isOwnProfile onEdit={() => setIsEditing(true)}/>
             <h2>
               {user.name}
               {user.isVerified && <CheckCircleIcon className="verified-check" titleAccess="Verified profile" />}

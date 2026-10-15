@@ -1,6 +1,7 @@
 import { apiFetch } from '../api';
 import BookingList from "./BookingList";
 import ProfileReviews from "./ProfileReviews";
+import ProfileAvatar from "./ProfileAvatar";
 import InlineFeedback from "./InlineFeedback";
 import { useEffect, useRef, useState } from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -263,11 +264,7 @@ function CoachProfile({ user, isOwnProfile, bookings, onRequestBooking, onCoachA
     <div className="profile-layout-container">
       <InlineFeedback message={feedback} onDismiss={() => setFeedback("")} />
       <div className="profile-header-card">
-        <div className="profile-monogram">
-          {user.profileImage ? (
-            <img src={user.profileImage} alt={`${user.name || "Coach"} profile`} />
-          ) : <span aria-hidden="true">{user.name ? user.name.charAt(0).toUpperCase() : "W"}</span>}
-        </div>
+        <ProfileAvatar user={user} className="profile-monogram" isOwnProfile={isOwnProfile} onEdit={() => setIsEditing(true)} />
 
         <div className="coach-header-text profile-summary">
           <div className="profile-title-row coach-name-row">

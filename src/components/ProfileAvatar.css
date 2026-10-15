@@ -4,3 +4,10 @@
 .learner-photo-editor { display: grid; gap: 10px; padding: 16px 0; font-size: 14px; }
 .learner-photo-editor p { margin: 0; color: #64766b; font-size: 13px; }
 .learner-photo-editor input { max-width: 100%; }
+.profile-photo-trigger { padding: 0; border: 0; cursor: zoom-in; font-family: inherit; }
+.profile-photo-trigger:focus-visible { outline: 3px solid #265d41; outline-offset: 4px; }
+.profile-photo-dialog { width: min(720px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: 16px; color: #183c2a; background: #fff; box-sizing: border-box; }
+.profile-photo-dialog::backdrop { background: rgb(0 0 0 / 70%); }
+.profile-photo-viewer { display: grid; gap: 16px; padding: 20px; }
+.profile-photo-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.profile-photo-enlarged { display: block; width: 100%; max-height: calc(100dvh - 200px); object-fit: contain; border-radius: 8px; }
